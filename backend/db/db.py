@@ -28,6 +28,12 @@ def timesubdate(time:int, subdate:int) -> int:
     date = date - datetime.timedelta(days=subdate)
     return int(date.strftime("%Y%m%d%H%M%S"))
 
+def checkliked(newsdict:dict, user_id:str) -> dict:
+    # check if user liked or disliked the news
+    newsdict["Isliked"] = True if user_id in newsdict["likelist"].split(SEPERATER) else False
+    newsdict["Isdisliked"] = True if user_id in newsdict["dislikelist"].split(SEPERATER) else False
+    return newsdict
+
 class DB:
     def __init__(self, dbname:str):
         self.dbname = dbname
@@ -220,8 +226,13 @@ class NewsDB(DB):
         super().__init__(dbname)
         self.table_name = "news"
         self.news_id = 0
-        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int", "category" : "text", "author_id" : "text", "comment" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int) / category (text) / author_id (text) / comment (text)
+        self._make_table(self.table_name, {
+            "news_id" : "int", "title" : "text", "content" : "text", "brief" : "text",
+            "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int",
+            "category" : "text", "author_id" : "text", "comment" : "text" , "likelist" : "text", "dislikelist" : "text"})
+        # title (text) / content (text) / brief (text)
+        # URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int)
+        # category (text) / author_id (text) / comment (text) / likelist (text) / dislikelist (text)
 
     def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, author_id:str) -> bool:
         # True : insert success
@@ -236,14 +247,18 @@ class NewsDB(DB):
             dislike = 0
             opinion = 0
             comment = ""
-            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, like, dislike, opinion, category, author_id, comment])
+            likelist = ""
+            dislikelist = ""
+            self._insert_table(self.table_name, [
+                news_id, title, content, brief, URL, imageURL, date, like, dislike, opinion,
+                category, author_id, comment, likelist, dislikelist])
             self.news_id = news_id
             return True
         except:
             print("insert news error")
             return False
         
-    def update_news(self, news_id:int, like=None, dislike=None, opinion=None, commentlist:list=None) -> bool:
+    def update_news(self, news_id:int, like=None, dislike=None, opinion=None, comment:list=None, likelist=None, dislikelist=None) -> bool:
         # True : update success
         # False : update failed
         # comment : list of comment
@@ -252,10 +267,10 @@ class NewsDB(DB):
             if self.get_news(news_id) == {}:
                 print("news not found")
                 return False
-            for attr in ["like", "dislike", "opinion", "comment"]:
+            for attr in ["like", "dislike", "opinion", "comment", "likelist", "dislikelist"]:
                 if eval(attr) != None:
                     if attr == "comment":
-                        comment = overSEPERATOR.join(list(map(lambda x : x.get_string(), commentlist)))
+                        comment = overSEPERATER.join(list(map(lambda x : x.get_string(), comment)))
                         self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : comment})
                     else:
                         self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : str(eval(attr))})
@@ -264,25 +279,26 @@ class NewsDB(DB):
             print("update news error")
             return False
 
-    def get_news(self, news_id:int) -> dict:
+    def get_news(self, news_id:int, user_id:str) -> dict:
         # find news in news database
         try:
-            return self._find_table(self.table_name, {"news_id" : ["same", news_id]}, {})[0]
+
+            return checkliked(self._find_table(self.table_name, {"news_id" : ["same", news_id]}, {})[0], user_id)
         except:
             print("find news error")
             return {}
 
-    def title_news(self, title:str) -> dict:
+    def title_news(self, title:str, user_id:str) -> dict:
         # find title in news database
         try:
-            return self._find_table(self.table_name, {"title" : ["same", title]}, {})[0]
+            return checkliked(self._find_table(self.table_name, {"title" : ["same", title]}, {})[0], user_id)
         except:
             print("find title error")
             return {}
 
     def recent_news(self, num:int) -> list:
         try:
-            return self._find_table(self.table_name, {}, {"date" : "desc"}, num)
+            return list(map(checkliked, self._find_table(self.table_name, {}, {"date" : "desc"}, num)))
         except:
             print("recent news error")
             return []
@@ -291,14 +307,14 @@ class NewsDB(DB):
         # subdate : recent days (default 14)
         # num : number of news
         try:
-            return self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime, subdate)]}, {"opinion" : "desc"}, num)
+            return list(map(checkliked, self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime, subdate)]}, {"opinion" : "desc"}, num)))
         except:
             print("hot news error")
             return ""
 
     def category_news(self, category:str, num:int) -> list:
         try:
-            return self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)
+            return list(map(checkliked, self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)))
         except:
             print("category news error")
             return ""
