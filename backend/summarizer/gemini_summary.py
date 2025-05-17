@@ -16,13 +16,14 @@ def summarize_article(text):
 
 def summarize_comment(text: list[str]) -> str:
     model = genai.GenerativeModel('gemini-1.5-flash')
-    
+
     comment_block = "\n".join(text)
+    comment_len = min(3, len(text))
 
     prompt = f"""
     Below are user comments on a news article.
 
-    Please analyze the comments and extract the **three most commonly discussed key points**.
+    Please analyze the comments and extract the **{comment_len} most commonly discussed key points**.
     Write your answer in Korean, using the format below:
 
     1. ...
