@@ -32,6 +32,7 @@ def checkliked(newsdict:dict, user_id:str) -> dict:
     if newsdict == {}:
         return {}
     # check if user liked or disliked the news
+    print(newsdict["likelist"].split(SEPERATER))
     newsdict["Isliked"] = True if user_id in newsdict["likelist"].split(SEPERATER) else False
     newsdict["Isdisliked"] = True if user_id in newsdict["dislikelist"].split(SEPERATER) else False
     return newsdict
@@ -333,6 +334,8 @@ class NewsDB(DB):
                     if attr == "comment":
                         comment = overSEPERATER.join(list(map(lambda x : x.get_string(), comment)))
                         self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : comment})
+                    elif "list" in attr:
+                        self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : SEPERATER.join(eval(attr))})
                     else:
                         self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : str(eval(attr))})
             return True
@@ -343,7 +346,6 @@ class NewsDB(DB):
     def get_news(self, news_id:int, user_id:str) -> dict:
         # find news in news database
         try:
-
             return checkliked(self._find_table(self.table_name, {"news_id" : ["same", news_id]}, {})[0], user_id)
         except:
             print("find news error")
@@ -364,7 +366,7 @@ class NewsDB(DB):
             print("recent news error")
             return []
 
-    def hot_news(self, num:int, subdate = 14) -> list:
+    def hot_news(self, num:int, user_id:str, subdate = 14) -> list:
         # subdate : recent days (default 14)
         # num : number of news
         try:
@@ -373,7 +375,7 @@ class NewsDB(DB):
             print("hot news error")
             return ""
 
-    def category_news(self, category:str, num:int) -> list:
+    def category_news(self, category:str, num:int, user_id:str) -> list:
         try:
             return list(map(lambda x: checkliked(x, user_id), self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)))
         except:
