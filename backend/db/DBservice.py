@@ -142,7 +142,6 @@ class DBservice():
                 else:
                     raise Exception("Parent comment not found")
         except Exception as e:
-            print("-------------------")
             print(e)
             raise Exception(e)
         except:
