@@ -4,7 +4,7 @@ from services.user_service import session_store
 def auth_middleware(request: Request, response: Response):
     """
     사용자 인증을 확인하는 미들웨어
-    세션 ID로부터 사용자 ID를 확인하고 인증되지 않은 사용자는 401 에러를 반환합니다.
+    세션 ID로부터 사용자 ID를 확인하고 인증되지 않은 사용자는 401 에러를 반환합니다.    # guest user로 변환
     """
     user_id = None
     session_id = request.cookies.get("session_id")
@@ -15,7 +15,8 @@ def auth_middleware(request: Request, response: Response):
     if not user_id:
         if session_id:
             response.delete_cookie("session_id")
-        raise HTTPException(status_code=401, detail="Unauthorized")
+        user_id = "" # guest user
+        # raise HTTPException(status_code=401, detail="Unauthorized")
 
     return user_id
 
