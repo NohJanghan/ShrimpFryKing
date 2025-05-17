@@ -116,21 +116,19 @@ class DBservice():
         except:
             raise Exception("Error occurred while creating news")
 
-    def create_comment(self, data: CreateCommentItem, user_id: str = "") -> None:
+    def create_comment(self, data: CreateCommentItem) -> None:
         try:
-            if not self.is_user_exist(user_id):
+            if not self.is_user_exist(data.author_id):
                 raise Exception("User not found")
-            if data.author_id != user_id:
-                raise Exception("User ID does not match")
-            newsdict = self.newsDB.get_news(data.news_id, user_id)
+            newsdict = self.newsDB.get_news(data.news_id, data.author_id)
             if newsdict is {}:
                 raise Exception("News not found")
-            news = get_news_from_dict(newsdict, user_id)
+            news = get_news_from_dict(newsdict, data.author_id)
             data = data.replace()
             if data.parent_id is None:
                 newscomment = news.comment
                 newscomment.append(CommentItem(news.news_id, data.author_id, data.content, data.posneg))
-                ret = self.newsDB.update_news(data.news_id, comment=newscomment, user_id=user_id)
+                ret = self.newsDB.update_news(data.news_id, comment=newscomment, user_id=data.author_id)
                 if not ret:
                     raise Exception("Failed to update news with new comment")
             else:
@@ -138,7 +136,7 @@ class DBservice():
                 newscomment = news.comment
                 if data.parent_id < len(newscomment) and data.parent_id >= 0:
                     newscomment[data.parent_id].insert_additional_comment(data.author_id, data.content)
-                    ret = self.newsDB.update_news(data.news_id, comment=newscomment, user_id=user_id)
+                    ret = self.newsDB.update_news(data.news_id, comment=newscomment, user_id=data.author_id)
                     if not ret:
                         raise Exception("Failed to update news with new additional comment")
                 else:
