@@ -168,37 +168,53 @@ class news(db):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "news"
-        self._make_table(self.table_name, {"title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text)
+        self.news_id = 0
+        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text", "comment" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text) / comment (text)
 
-    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, date:int, good:int, bad:int, opinion:int, category:str, id:str) -> bool:
+    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, id:str) -> bool:
         # True : insert success
         # False : insert failed
         try:
-            if self.get_news(title) != {}:
+            if self.title_news(title) != {}:
                 print("title already exists")
                 return False
-            self._insert_table(self.table_name, [title, content, brief, URL, imageURL, date, good, bad, opinion, category, id])
+            news_id = self.news_id + 1
+            date = nowtime()
+            good = 0
+            bad = 0
+            opinion = 0
+            comment = ""
+            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, good, bad, opinion, category, id, comment])
+            self.news_id = news_id
             return True
         except:
             print("insert news error")
             return False
 
-    def get_news(self, title:str) -> dict:
+    def get_news(self, news_id:int) -> dict:
+        # find news in news database
+        try:
+            return self._find_table(self.table_name, {"news_id" : ["same", news_id]}, {})[0]
+        except:
+            print("find news error")
+            return {}
+
+    def title_news(self, title:str) -> dict:
         # find title in news database
         try:
             return self._find_table(self.table_name, {"title" : ["same", title]}, {})[0]
         except:
             print("find title error")
             return {}
-    
+
     def recent_news(self, num:int) -> list:
         try:
             return self._find_table(self.table_name, {}, {"date" : "desc"}, num)
         except:
             print("recent news error")
             return []
-    
+
     def hot_news(self, num:int, subdate = 14) -> list:
         # subdate : recent days (default 14)
         # num : number of news
@@ -207,7 +223,7 @@ class news(db):
         except:
             print("hot news error")
             return ""
-    
+
     def category_news(self, category:str, num:int) -> list:
         try:
             return self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)
