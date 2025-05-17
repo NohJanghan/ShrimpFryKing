@@ -5,16 +5,16 @@ api_key = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=api_key)
 
-def summarize_article(text):
+async def summarize_article(text):
     model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
     Summarize the following news article in 3 sentences in Korean:
     {text}
     """
-    response = model.generate_content(prompt)
+    response = await model.generate_content_async(prompt)
     return response.text.strip()
 
-def summarize_comment(text: list[str]) -> str:
+async def summarize_comment(text: list[str]) -> str:
     model = genai.GenerativeModel('gemini-1.5-flash')
 
     comment_block = "\n".join(text)
@@ -34,5 +34,5 @@ def summarize_comment(text: list[str]) -> str:
     {comment_block}
 
     """
-    response = model.generate_content(prompt)
+    response = await model.generate_content_async(prompt)
     return response.text.strip()
