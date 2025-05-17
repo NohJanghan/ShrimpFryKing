@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from markdownify import markdownify as md
 import html2text
 
 def extract_articles_from_url(url):
