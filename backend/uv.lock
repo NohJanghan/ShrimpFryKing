@@ -46,7 +46,7 @@ dependencies = [
     { name = "pandas" },
     { name = "python-dotenv" },
     { name = "requests" },
-    { name = "uvicorn" },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.metadata]
@@ -60,7 +60,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "uvicorn", specifier = ">=0.34.2" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.2" },
 ]
 
 [[package]]

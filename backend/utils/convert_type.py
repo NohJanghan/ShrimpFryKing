@@ -1,6 +1,6 @@
 
-from backend.db.entity import NewsItem
-from backend.routers.dto.news_dto import NewsItemDetail
+from db.entity import NewsItem
+from routers.dto.news_dto import NewsItemDetail
 
 def news_to_detail(news_item: NewsItem) -> NewsItemDetail:
     return NewsItemDetail(
