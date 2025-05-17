@@ -28,8 +28,8 @@ function RegisterPage({ setUser, setPage }) {
       const query = `id=${encodeURIComponent(id)}`;
       const res = await fetch(`${BASE_URL}/user/check_id?${query}`);
       if (res.ok) {
-        const data = await res.json();
-        setIdAvailable(data.available);
+        const data = await res.text();
+        setIdAvailable(data === 'true');
         setIdChecked(true);
       } else {
         setIdAvailable(false);

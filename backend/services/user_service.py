@@ -45,3 +45,18 @@ def login(user_id: str, password: str) -> bool:
             return False
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+def check_id_duplicate(user_id: str) -> bool:
+    """
+    Check if the given user_id is already taken.
+
+    Args:
+        user_id (str): The ID of the user.
+
+    Returns:
+        bool: True if the user ID is available, False if it is already taken.
+    """
+    try:
+        return not db.is_user_exist(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

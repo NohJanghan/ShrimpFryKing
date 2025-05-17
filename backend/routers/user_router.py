@@ -1,13 +1,13 @@
 import uuid
 from fastapi import APIRouter, Request, Response
 from services import user_service
-from services.user_service import session_store
+from services.user_service import session_store, check_id_duplicate
 
 router = APIRouter(prefix="/user", tags=["user"])
 
-@router.get("/")
-async def get_current_user():
-    raise NotImplementedError("get_user not implemented")
+@router.get("/check_id")
+async def get_current_user(id):
+    return check_id_duplicate(id)
 
 @router.post("/login")
 async def login(id: str, password: str, response: Response):
