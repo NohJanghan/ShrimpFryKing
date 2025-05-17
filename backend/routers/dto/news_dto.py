@@ -16,6 +16,5 @@ class NewsItemDetail(BaseModel):
     imageURL: str
     likes: int
     dislikes: int
-    comments_count: int
     # comments
 
