@@ -9,7 +9,7 @@ import sqlite3 as sql3
 import pandas as pd
 import numpy as np
 import datetime
-from entity import *
+from .entity import *
 # for isnan checking
 
 def splitjoin(string, spl_list, change):

@@ -1,6 +1,6 @@
-from db import *
+from .db import *
 from typing import Literal
-from entity import *
+from .entity import *
 
 def get_news_from_dict(newsdict: dict) -> NewsItem:
     news = NewsItem()
