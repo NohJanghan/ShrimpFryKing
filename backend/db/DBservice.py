@@ -104,10 +104,12 @@ class DBservice():
         except:
             raise Exception("Error occurred while fetching news")
 
-    def create_news(self, data: CreateNewsItem) -> None:
+    def create_news(self, data: CreateNewsItem, user_id: str) -> None:
         try:
-            if not self.is_user_exist(data.author_id):
+            if not self.is_user_exist(user_id):
                 raise Exception("User not found")
+            if data.author_id != user_id:
+                raise Exception("User ID does not match")
             data = data.replace()
             self.newsDB.insert_news(data.title, data.content, data.brief, data.url, data.image_url, data.category, data.author_id)
         except Exception as e:
@@ -116,10 +118,12 @@ class DBservice():
         except:
             raise Exception("Error occurred while creating news")
 
-    def create_comment(self, data: CreateCommentItem) -> None:
+    def create_comment(self, data: CreateCommentItem, user_id: str) -> None:
         try:
-            if not self.is_user_exist(data.author_id):
+            if not self.is_user_exist(user_id):
                 raise Exception("User not found")
+            if data.author_id != user_id:
+                raise Exception("User ID does not match")
             newsdict = self.newsDB.get_news(data.news_id, data.author_id)
             if newsdict is {}:
                 raise Exception("News not found")

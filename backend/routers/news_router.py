@@ -38,7 +38,6 @@ async def like_news_handler(news_id: int, request: Request, response: Response):
     user_id = auth_middleware(request, response)
     return await like_news(news_id, user_id)
 
-
 @router.post("/dislike/{news_id}", response_model=bool)
 async def dislike_news_handler(news_id: int, request: Request, response: Response):
     user_id = auth_middleware(request, response)
@@ -48,7 +47,6 @@ async def dislike_news_handler(news_id: int, request: Request, response: Respons
 async def remove_like_news_handler(news_id: int, request: Request, response: Response):
     user_id = auth_middleware(request, response)
     return await remove_like_news(news_id, user_id)
-
 
 @router.delete("/dislike/{news_id}", response_model=bool)
 async def remove_dislike_news_handler(news_id: int, request: Request, response: Response):
