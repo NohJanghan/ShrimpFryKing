@@ -199,3 +199,11 @@ class CommentItem:
             self.like -= 1
             self.likelist.remove(user_id)
         self.Isliked = like
+    def setdislike(self, dislike:bool, user_id:str):
+        if dislike == True:
+            self.dislike += 1
+            self.dislikelist.append(user_id)
+        else:
+            self.dislike -= 1
+            self.dislikelist.remove(user_id)
+        self.Isdisliked = dislike

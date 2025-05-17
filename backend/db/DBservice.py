@@ -190,9 +190,31 @@ class DBservice():
             raise Exception("Error occurred while updating comment")
 
     def update_news(self, news_id, likes: int | None = None, dislikes: int | None = None, user_id: str = ""):
-        
-
-        raise NotImplementedError("This endpoint is not implemented yet.")
+        try:
+            if not self.is_user_exist(user_id):
+                raise Exception("User not found")
+            news = self.get_news(news_id, user_id)
+            if news is {}:
+                raise Exception("News not found")
+            news = get_news_from_dict(news, user_id)
+            if likes is not None:
+                if likes == 1 and not news.Isliked:
+                    news.setlike(True)
+                elif likes == -1 and news.Isliked:
+                    news.setlike(False)
+            if dislikes is not None:
+                if dislikes == 1 and not news.Isdisliked:
+                    news.setdislike(True)
+                elif dislikes == -1 and news.Isdisliked:
+                    news.setdislike(False)
+            ret = self.newsDB.update_news(news.news_id, like=news.like, dislike=news.dislike, Isliked=news.Isliked, Isdisliked=news.Isdisliked)
+            if not ret:
+                raise Exception("Failed to update news with new like/dislike")
+        except Exception as e:
+            print(e)
+            raise Exception(e)
+        except:
+            raise Exception("Error occurred while updating news")
 
     # def delete_comment(self, id):
     #     raise NotImplementedError("This endpoint is not implemented yet.")
