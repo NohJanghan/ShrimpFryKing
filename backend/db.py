@@ -169,8 +169,8 @@ class news(db):
         super().__init__(dbname)
         self.table_name = "news"
         self.news_id = 0
-        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text)
+        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text", "comment" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text) / comment (text)
 
     def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, id:str) -> bool:
         # True : insert success
@@ -184,7 +184,8 @@ class news(db):
             good = 0
             bad = 0
             opinion = 0
-            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, good, bad, opinion, category, id])
+            comment = ""
+            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, good, bad, opinion, category, id, comment])
             self.news_id = news_id
             return True
         except:
