@@ -28,6 +28,15 @@ class DBservice():
         self.newsDB = NewsDB(dbname)
         self.userDB = UserDB(dbname)
 
+    def is_user_exist(self, user_id: str) -> bool:
+        try:
+            if len(self.userDB.get_user(user_id)) != 0:
+                return True
+            else:
+                return False
+        except:
+            raise Exception("Error occurred while checking user existence")
+
     def get_news_list(self, order_by: Literal['recent', 'hot'], page: int = 1, page_size: int = 10, user_id: str = "") -> list["NewsItem"]:
         try:
             page_init = page_size * (page - 1) + 1
@@ -77,10 +86,20 @@ class DBservice():
             if not self.newsDB.is_news_exist(data.news_id):
                 raise Exception("News not found")
             if data.parent_id is None:
-
-                self.newsDB.insert_comment(data.news_id, data.content, data.author_id, data.parent_id)
+                newscomment = self.get_news_by_id(data.news_id).comment
+                newscomment.append(CommentItem(data.author_id, data.content))
+                ret = self.newsDB.update_news(data.news_id, commentlist=newscomment)
+                if not ret:
+                    raise Exception("Failed to update news with new comment")
             else:
-                if not self.newsDB.is_comment_exist(data.news_id, data.parent_id):
+                # Check if parent comment exists
+                newscomment = self.get_news_by_id(data.news_id).comment
+                if data.parent_id < len(newscomment):
+                    newscomment[data.parent_id].insert_additional_comment(data.author_id, data.content)
+                    ret = self.newsDB.update_news(data.news_id, commentlist=newscomment)
+                    if not ret:
+                        raise Exception("Failed to update news with new additional comment")
+                else:
                     raise Exception("Parent comment not found")
         except Exception as e:
             print(e)
