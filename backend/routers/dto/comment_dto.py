@@ -15,3 +15,7 @@ class CommentItem(BaseModel):
 class PostCommentRequest(BaseModel):
     author_id: str
     content: str
+
+class CommentSummary(BaseModel):
+    summarized_positive_comment: str
+    summarized_negative_comment: str
