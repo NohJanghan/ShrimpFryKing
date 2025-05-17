@@ -31,7 +31,7 @@ def timesubdate(time:int, subdate:int) -> int:
 class DB:
     def __init__(self, dbname:str):
         self.dbname = dbname
-        self.conn = sql3.connect(dbname+".db")
+        self.conn = sql3.connect(dbname)
         self.cur = self.conn.cursor()
         self.attr = []
     def __del__(self):

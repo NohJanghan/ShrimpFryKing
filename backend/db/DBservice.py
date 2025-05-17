@@ -3,7 +3,7 @@ from typing import Literal
 from entity import *
 
 class DBservice():
-    def __init__(self, dbname = "news.db"):
+    def __init__(self, dbname = "agora.db"):
         self.newsDB = NewsDB(dbname)
         self.userDB = UserDB(dbname)
 
@@ -51,3 +51,5 @@ class DBservice():
 
     # def delete_comment(self, id):
     #     raise NotImplementedError("This endpoint is not implemented yet.")
+
+db = DBservice("agora.db")
