@@ -130,6 +130,42 @@ class db:
         except:
             print("select where exec/fetch error")
             return []
+    def _update_table(self, table_name:str, where:dict, content:dict) -> bool:
+        #UPDATE {table name} set {prop} {value}, {prop} {value} where {prop} {operator} {condition} and {prop} {operator} {condition};
+        cmd = "update " + table_name
+        if len(content) != 0:
+            cmd_list = []
+            for _prop, _option in content.items():
+                cmd_list.append(_prop + "=" + _option)
+            cmd += " set " + ", ".join(cmd_list)
+        if len(where) != 0:
+            cmd_list = []
+            for _prop, _option_value in where.items():
+                _option = _option_value[0]
+                _value = _option_value[1]
+                cst = _prop + " "
+                if _option == "same":       cst += "= " + _value
+                elif _option == "under":    cst += "< " + _value
+                elif _option == "over":     cst += "> " + _value
+                elif _option == "undersame":cst += "<= " + _value
+                elif _option == "oversame": cst += ">= " + _value
+                elif _option == "notsame":  cst += "!= " + _value
+                elif _option == "is":       cst += "is " + _value #null/tf/unk
+                elif _option == "isnot":    cst += "is not " + _value #null/tf/unk
+                elif _option == "bw":       cst += "between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
+                elif _option == "notbw":    cst += "not between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
+                elif _option == "in":       cst += "in(" + ", ".join(_value) + ")"
+                elif _option == "notin":    cst += "not in(" + ", ".join(_value) + ")"
+                else:
+                    cst += "is " + _value
+                cmd_list.append(cst)
+            cmd += " where " + " and ".join(cmd_list)
+        try:
+            self._exec(cmd)
+            return True
+        except:
+            print("update where exec error")
+            return False
 
 class user(db):
     def __init__(self, dbname:str):
@@ -163,6 +199,20 @@ class user(db):
             return True
         except:
             return False
+    def get_user(self, id:str) -> dict:
+        # find user in user database
+        try:
+            return self._find_table(self.table_name, {"id" : ["same", id]}, {})[0]
+        except:
+            print("find user error")
+            return {}
+    def get_username(self, id:str) -> str:
+        # find user in user database
+        try:
+            return self._find_table(self.table_name, {"id" : ["same", id]}, {})[0]["username"]
+        except:
+            print("find user error")
+            return ""
 
 class news(db):
     def __init__(self, dbname:str):
@@ -190,6 +240,19 @@ class news(db):
             return True
         except:
             print("insert news error")
+            return False
+        
+    def update_news(self, news_id:int, good=None, bad=None, opinion=None, comment=None) -> bool:
+        # True : update success
+        # False : update failed
+        try:
+            if self.get_news(news_id) == {}:
+                print("news not found")
+                return False
+            self._exec("update " + self.table_name + " set title = '" + title + "', content = '" + content + "', brief = '" + brief + "', URL = '" + URL + "', imageURL = '" + imageURL + "', category = '" + category + "' where news_id = " + str(news_id))
+            return True
+        except:
+            print("update news error")
             return False
 
     def get_news(self, news_id:int) -> dict:
@@ -231,6 +294,49 @@ class news(db):
             print("category news error")
             return ""
 
+SEPERATOR = "|||SEP|||"
+
+class comment():
+    def __init__(self, id:str, content:str):
+        self.id = id
+        self.content = content
+        self.posneg = 0
+        self.like = 0
+        self.dislike = 0
+        # 0 : neutral, 1 : pos, -1 : neg
+        self.additional_comment = []
+    def insert_additional_comment(self, id:str, content:str) -> bool:
+        # True : insert success
+        # False : insert failed
+        try:
+            self.additional_comment.append([id, content])
+            return True
+        except:
+            print("insert comment error")
+            return False
+    def ret_string(self) -> str:
+        # return comment string
+        ret = self.id + SEPERATOR + self.content + SEPERATOR + str(self.posneg) + SEPERATOR + str(self.like) + SEPERATOR + str(self.dislike) + SEPERATOR
+        for c in self.additional_comment:
+            ret += c[0] + SEPERATOR + c[1] + SEPERATOR
+        return ret
+    def reset_using_string(self, string:str) -> bool:
+        # reset comment using string
+        try:
+            lines = string.split(SEPERATOR)
+            self.id = lines[0]
+            self.content = lines[1]
+            self.posneg = int(lines[2])
+            self.like = int(lines[3])
+            self.dislike = int(lines[4])
+            self.additional_comment = []
+            for i in range(5, len(lines), 2):
+                if i + 1 < len(lines):
+                    self.additional_comment.append([lines[i], lines[i + 1]])
+            return True
+        except:
+            print("reset comment error")
+            return False
 
 if __name__ == '__main__':
     db_name = "temp.db" # database name
