@@ -1,6 +1,6 @@
-from db import *
+from .db import *
 from typing import Literal
-from entity import *
+from .entity import *
 
 def get_news_from_dict(newsdict: dict) -> NewsItem:
     news = NewsItem()
@@ -76,7 +76,12 @@ class DBservice():
                 raise Exception("User ID does not match")
             if not self.newsDB.is_news_exist(data.news_id):
                 raise Exception("News not found")
-            self.newsDB.insert_comment(data.news_id, data.content, data.author_id, data.parent_id)
+            if data.parent_id is None:
+
+                self.newsDB.insert_comment(data.news_id, data.content, data.author_id, data.parent_id)
+            else:
+                if not self.newsDB.is_comment_exist(data.news_id, data.parent_id):
+                    raise Exception("Parent comment not found")
         except Exception as e:
             print(e)
             raise Exception(e)
