@@ -15,6 +15,7 @@ class CreateCommentItem:
     news_id: int
     author_id: int
     parent_id: int | None= None # int이면 additional Comment
+    posneg: int # 0 : neutral, 1 : pos, -1 : neg
 
 class NewsItem:
     news_id: int
