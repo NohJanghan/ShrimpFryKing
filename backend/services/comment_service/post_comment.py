@@ -6,7 +6,7 @@ from services.news_service.get_news_by_id import get_news_by_id
 from categorizer.gemini_classifier import classify_opinion
 from categorizer.gemini_classifier import classify_content_risk
 
-async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest):
+async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest, user_id: str) -> bool:
   try:
     data = CreateCommentItem()
     data.content = comment.content
@@ -14,19 +14,23 @@ async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest):
     data.author_id = comment.author_id
     data.parent_id = None
 
-    news_item = get_news_by_id(news_id)
+    news_item = await get_news_by_id(news_id, user_id)
+
     text = {
        "brief": news_item.brief,
        "comment": data.content
     }
 
+    print(1)
+    print(text)
+
     data.posneg = await classify_opinion(text)
-    risk = await check_risky(data.content)
+    #risk = await check_risky(data.content)
 
-    if risk == "High Risk":
-      return False
+    #if risk == "High Risk":
+    #  return False
 
-    db.create_comment(data)
+    db.create_comment(data, user_id)
     return True
 
   except Exception as e:

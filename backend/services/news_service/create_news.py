@@ -33,7 +33,7 @@ async def create_news(news_url: str, user_id: str) -> bool:
             author_id=user_id,
         )
         # print(f"[INFO] Inserting news into DB - Title: {title}, URL: {news_url}")
-        db.create_news(data)
+        db.create_news(data, user_id)
         return True
 
     except Exception as e:

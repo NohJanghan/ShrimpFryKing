@@ -7,6 +7,8 @@ async def get_news_by_id(news_id: int, user_id: str):
         news_item = db.get_news_by_id(news_id, user_id=user_id)
         news_item = news_to_detail(news_item)
 
+        print(news_item.brief)
+
         return news_item
 
     except Exception as e:
