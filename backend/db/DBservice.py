@@ -1,7 +1,7 @@
 # import asyncio
-from .db import *
+from db.db import *
 from typing import Literal
-from .entity import *
+from db.entity import *
 
 def get_news_from_dict(newsdict: dict, user_id:str) -> NewsItem:
     comment = []
@@ -29,16 +29,6 @@ def get_news_from_dict(newsdict: dict, user_id:str) -> NewsItem:
         Isdisliked = newsdict["Isdisliked"]
     )
     return news
-
-def seperaterRUN(data: str) -> str:
-    for c, spt in [(" ", spaceSEPERATER), ("\n", enterSEPERATER)]:
-        data = data.replace(c, spt)
-    return data
-
-def seperaterUNRUN(data: str) -> str:
-    for c, spt in [(" ", spaceSEPERATER), ("\n", enterSEPERATER)]:
-        data = data.replace(spt, c)
-    return data
 
 class DBservice():
     def __init__(self, dbname = "agora.db"):
@@ -107,6 +97,8 @@ class DBservice():
 
     def create_news(self, data: CreateNewsItem, user_id: str = "") -> None:
         try:
+            print(self.is_user_exist(user_id))
+            ############# TEST CODE #############
             if not self.is_user_exist(user_id):
                 raise Exception("User not found")
             if data.author_id != user_id:

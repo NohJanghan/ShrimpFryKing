@@ -9,7 +9,7 @@ import sqlite3 as sql3
 import pandas as pd
 import numpy as np
 import datetime
-from .entity import *
+from db.entity import *
 # for isnan checking
 
 def splitjoin(string, spl_list, change):
@@ -238,7 +238,7 @@ class NewsDB(DB):
         # True : insert success
         # False : insert failed
         try:
-            if self.title_news(title) != {}:
+            if self.title_news(title, author_id) != {}:
                 print("title already exists")
                 return False
             news_id = self.news_id + 1

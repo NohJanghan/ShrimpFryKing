@@ -1,12 +1,58 @@
 # import asyncio
 from dataclasses import dataclass
-from .DBservice import *
 
 SEPERATER = "|||SEP|||"
 overSEPERATER = "|||OVERSEP|||"
 innerSEPERATER = "|||sep|||"
-spaceSEPERATER = "|||space|||"
-enterSEPERATER = "|||enter|||"
+seperater_map = {
+    '.': '|||DOT|||',
+    ',': '|||COMMA|||',
+    '\"': '|||QUOTE|||',
+    "\'": '|||APOST|||',
+    ':': '|||COLON|||',
+    ';': '|||SEMIC|||',
+    ' ': '|||SPACE|||',
+    '\n': '|||ENTER|||',
+    '\r': '|||RETURN|||',
+    '<': '|||LT|||',
+    '>': '|||GT|||',
+    '&': '|||AMP|||',
+    '%': '|||PERCENT|||',
+    '=': '|||EQUAL|||',
+    '+': '|||PLUS|||',
+    '-': '|||MINUS|||',
+    '*': '|||ASTERISK|||',
+    '/': '|||SLASH|||',
+    '\\': '|||BACKSLASH|||',
+    '@': '|||AT|||',
+    '#': '|||HASH|||',
+    '$': '|||DOLLAR|||',
+    '^': '|||CARET|||',
+    '(': '|||LPAREN|||',
+    ')': '|||RPAREN|||',
+    '{': '|||LBRACE|||',
+    '}': '|||RBRACE|||',
+    '[': '|||LBRACKET|||',
+    ']': '|||RBRACKET|||',
+    '?': '|||QUESTION|||',
+    '!': '|||EXCLAM|||',
+    '&': '|||AMPERSAND|||',
+    '`': '|||BACKTICK|||',
+    '~': '|||TILDE|||',
+    '\t': '|||TAB|||',
+    '\\': '|||BACKSLASH|||',
+    '_': '|||UNDERBAR|||'
+}
+
+def seperaterRUN(data: str) -> str:
+    for c, spt in seperater_map.items():
+        data = data.replace(c, spt)
+    return data
+
+def seperaterUNRUN(data: str) -> str:
+    for spt, c in seperater_map.items():
+        data = data.replace(spt, c)
+    return data
 
 @dataclass
 class CreateNewsItem:
