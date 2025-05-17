@@ -53,6 +53,30 @@ class DBservice():
                 return False
         except:
             raise Exception("Error occurred while checking user existence")
+    
+    def login(self, user_id: str, password: str) -> bool:
+        # True : login success
+        # False : login failed
+        try:
+            return self.userDB.login(user_id, password)
+        except:
+            raise Exception("Error occurred while logging in")
+    
+    def signup_id(self, user_id: str) -> bool:
+        # True : id available
+        # False : id not available
+        try:
+            return self.userDB.signup_id(user_id)
+        except:
+            raise Exception("Error occurred while signing up ID")
+    
+    def signup(self, user_id: str, password: str, user_name: str) -> bool:
+        # True : signup success
+        # False : signup failed
+        try:
+            return self.userDB.signup(user_id, password, user_name)
+        except:
+            raise Exception("Error occurred while signing up")
 
     def get_news_list(self, order_by: Literal['recent', 'hot'], page: int = 1, page_size: int = 10, user_id: str="") -> list["NewsItem"]:
         try:
@@ -128,9 +152,8 @@ class DBservice():
         except:
             raise Exception("Error occurred while creating comment")
 
-    def update_comment(self, news_id, comment_index, likes: int | None = None, user_id: str = "") -> bool:
-        
-        raise NotImplementedError("This endpoint is not implemented yet.")
+    def update_comment(self, news_id: int, comment_index: int, child_comment_index: int | None = None, likes: int | None = None, content: str = "", user_id: str = ""):
+        # raise NotImplementedError("This endpoint is not implemented yet.")
         try:
             if not self.is_user_exist(user_id):
                 raise Exception("User not found")
@@ -142,24 +165,36 @@ class DBservice():
                 raise Exception("Comment index out of range")
             comment = news.comment[comment_index]
 
-
-
-            for comment in news.comment:
-                if comment.author_id == user_id:
-                    if likes is not None:
-                        comment.like += likes
-                    return True
-            ret = self.newsDB.update_news(data.news_id, commentlist=newscomment)
+            if child_comment_index is None:
+                if likes is not None:
+                    if likes == 1 and not comment.getIsliked:
+                        comment.setlike(True)
+                    elif likes == -1 and comment.getIsliked:
+                        comment.setdislike(True)
+                if content != "":
+                    if comment.author_id == user_id:
+                        comment.content = content
+                    else:
+                        raise Exception("User ID does not match")
+            else:
+                if content != "":
+                    if child_comment_index < 0 or child_comment_index >= len(comment.additional_comment):
+                        raise Exception("Child comment index out of range")
+                    if comment.additional_comment[child_comment_index][0] != user_id:
+                        raise Exception("User ID does not match")
+                    comment.additional_comment[child_comment_index][1] = content
+            news.comment[comment_index] = comment
+            ret = self.newsDB.update_news(data.news_id, comment=news.comment)
             if not ret:
                 raise Exception("Failed to update news with new comment")
-            return False
         except Exception as e:
             print(e)
             raise Exception(e)
         except:
             raise Exception("Error occurred while updating comment")
 
-    def update_news(self, id, likes: int | None = None, dislikes: int | None = None, user_id: str = "") -> bool:
+    def update_news(self, id, likes: int | None = None, dislikes: int | None = None, user_id: str = ""):
+
         raise NotImplementedError("This endpoint is not implemented yet.")
 
     # def delete_comment(self, id):

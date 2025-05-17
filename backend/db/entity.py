@@ -118,3 +118,13 @@ class CommentItem:
         for i in range(len(self.additional_comment)):
             self.additional_comment[i][1] = seperaterUNRUN(self.additional_comment[i][1])
         return self
+    def getIsliked(self) -> bool:
+        return self.Isliked
+    def setlike(self, like:bool, user_id:str):
+        if like == True:
+            self.like += 1
+            self.likelist.append(user_id)
+        else:
+            self.like -= 1
+            self.likelist.remove(user_id)
+        self.Isliked = like
