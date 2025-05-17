@@ -9,6 +9,7 @@ import sqlite3 as sql3
 import pandas as pd
 import numpy as np
 import datetime
+from .entity import *
 # for isnan checking
 
 def splitjoin(string, spl_list, change):
@@ -27,10 +28,10 @@ def timesubdate(time:int, subdate:int) -> int:
     date = date - datetime.timedelta(days=subdate)
     return int(date.strftime("%Y%m%d%H%M%S"))
 
-class db:
+class DB:
     def __init__(self, dbname:str):
         self.dbname = dbname
-        self.conn = sql3.connect(dbname+".db")
+        self.conn = sql3.connect(dbname)
         self.cur = self.conn.cursor()
         self.attr = []
     def __del__(self):
@@ -130,8 +131,44 @@ class db:
         except:
             print("select where exec/fetch error")
             return []
+    def _update_table(self, table_name:str, where:dict, content:dict) -> bool:
+        #UPDATE {table name} set {prop} {value}, {prop} {value} where {prop} {operator} {condition} and {prop} {operator} {condition};
+        cmd = "update " + table_name
+        if len(content) != 0:
+            cmd_list = []
+            for _prop, _option in content.items():
+                cmd_list.append(_prop + "=" + _option)
+            cmd += " set " + ", ".join(cmd_list)
+        if len(where) != 0:
+            cmd_list = []
+            for _prop, _option_value in where.items():
+                _option = _option_value[0]
+                _value = _option_value[1]
+                cst = _prop + " "
+                if _option == "same":       cst += "= " + _value
+                elif _option == "under":    cst += "< " + _value
+                elif _option == "over":     cst += "> " + _value
+                elif _option == "undersame":cst += "<= " + _value
+                elif _option == "oversame": cst += ">= " + _value
+                elif _option == "notsame":  cst += "!= " + _value
+                elif _option == "is":       cst += "is " + _value #null/tf/unk
+                elif _option == "isnot":    cst += "is not " + _value #null/tf/unk
+                elif _option == "bw":       cst += "between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
+                elif _option == "notbw":    cst += "not between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
+                elif _option == "in":       cst += "in(" + ", ".join(_value) + ")"
+                elif _option == "notin":    cst += "not in(" + ", ".join(_value) + ")"
+                else:
+                    cst += "is " + _value
+                cmd_list.append(cst)
+            cmd += " where " + " and ".join(cmd_list)
+        try:
+            self._exec(cmd)
+            return True
+        except:
+            print("update where exec error")
+            return False
 
-class user(db):
+class UserDB(DB):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "user"
@@ -163,16 +200,30 @@ class user(db):
             return True
         except:
             return False
+    def get_user(self, id:str) -> dict:
+        # find user in user database
+        try:
+            return self._find_table(self.table_name, {"id" : ["same", id]}, {})[0]
+        except:
+            print("find user error")
+            return {}
+    def get_username(self, id:str) -> str:
+        # find user in user database
+        try:
+            return self._find_table(self.table_name, {"id" : ["same", id]}, {})[0]["username"]
+        except:
+            print("find user error")
+            return ""
 
-class news(db):
+class NewsDB(DB):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "news"
         self.news_id = 0
-        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text)
+        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int", "category" : "text", "author_id" : "text", "comment" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int) / category (text) / author_id (text) / comment (text)
 
-    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, id:str) -> bool:
+    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, author_id:str) -> bool:
         # True : insert success
         # False : insert failed
         try:
@@ -181,14 +232,36 @@ class news(db):
                 return False
             news_id = self.news_id + 1
             date = nowtime()
-            good = 0
-            bad = 0
+            like = 0
+            dislike = 0
             opinion = 0
-            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, good, bad, opinion, category, id])
+            comment = ""
+            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, like, dislike, opinion, category, author_id, comment])
             self.news_id = news_id
             return True
         except:
             print("insert news error")
+            return False
+        
+    def update_news(self, news_id:int, good=None, bad=None, opinion=None, commentlist:list=None) -> bool:
+        # True : update success
+        # False : update failed
+        # comment : list of comment
+        # comment = CommentItem()
+        try:
+            if self.get_news(news_id) == {}:
+                print("news not found")
+                return False
+            for attr in ["good", "bad", "opinion", "comment"]:
+                if eval(attr) != None:
+                    if attr == "comment":
+                        comment = overSEPERATOR.join(list(map(lambda x : x.get_string(), commentlist)))
+                        self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : comment})
+                    else:
+                        self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : str(eval(attr))})
+            return True
+        except:
+            print("update news error")
             return False
 
     def get_news(self, news_id:int) -> dict:
@@ -230,7 +303,6 @@ class news(db):
             print("category news error")
             return ""
 
-
 if __name__ == '__main__':
     db_name = "temp.db" # database name
-    wp = db(db_name)
+    wp = DB(db_name)
