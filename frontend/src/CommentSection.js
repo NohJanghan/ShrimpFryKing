@@ -52,6 +52,11 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
     setDisagreeCount(propDisagreeCount ?? 0);
   }, [propAgreeCount, propDisagreeCount]);
 
+  // vote 상태를 newsId별로 동기화 (로그인 유저라면 서버에서 받아오는 게 이상적이나, 여기선 프론트에서만 관리)
+  useEffect(() => {
+    setVote(null); // 기사 바뀌면 초기화
+  }, [newsId]);
+
   const totalVotes = agreeCount + disagreeCount;
   const agreePercent = totalVotes ? Math.round((agreeCount / totalVotes) * 100) : 0;
   const disagreePercent = totalVotes ? Math.round((disagreeCount / totalVotes) * 100) : 0;
@@ -120,6 +125,44 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
     });
     setEditingId(null);
     setEditValue('');
+  };
+
+  // 찬성/반대 버튼 핸들러
+  const handleVoteAgree = async () => {
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      setPage && setPage('login');
+      return;
+    }
+    if (!newsId) return;
+    // 이미 찬성 상태면 취소
+    if (vote === 'agree') {
+      // 취소 요청
+      await onVoteAgree && onVoteAgree(0); // action: 0
+      setVote(null);
+    } else {
+      // 찬성 요청
+      await onVoteAgree && onVoteAgree(1); // action: 1
+      setVote('agree');
+    }
+  };
+  const handleVoteDisagree = async () => {
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      setPage && setPage('login');
+      return;
+    }
+    if (!newsId) return;
+    // 이미 반대 상태면 취소
+    if (vote === 'disagree') {
+      // 취소 요청
+      await onVoteDisagree && onVoteDisagree(0); // action: 0
+      setVote(null);
+    } else {
+      // 반대 요청
+      await onVoteDisagree && onVoteDisagree(1); // action: 1
+      setVote('disagree');
+    }
   };
 
   const renderComments = (comments, isReply = false) => {
@@ -233,7 +276,7 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
       <div className="vote-bar">
         <button
           className={`vote-btn agree ${vote === 'agree' ? 'selected' : ''}`}
-          onClick={onVoteAgree}
+          onClick={handleVoteAgree}
         >
           <img src={thumbUpImg} alt="찬성" style={{width:'20px',verticalAlign:'middle'}} />
           <span style={{marginLeft:4}}>{agreeCount}개<br/><span style={{fontSize:'12px'}}>({agreePercent}%)</span></span>
@@ -250,7 +293,7 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
         </div>
         <button
           className={`vote-btn disagree ${vote === 'disagree' ? 'selected' : ''}`}
-          onClick={onVoteDisagree}
+          onClick={handleVoteDisagree}
         >
           <img src={thumbDownImg} alt="반대" style={{width:'20px',verticalAlign:'middle'}} />
           <span style={{marginLeft:4}}>{disagreeCount}개<br/><span style={{fontSize:'12px'}}>({disagreePercent}%)</span></span>

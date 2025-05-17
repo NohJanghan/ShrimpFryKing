@@ -58,7 +58,7 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
             disagreeSummaryList={disagreeSummaryList}
             user={user}
             newsId={news.id || news.news_id}
-            onVoteAgree={async () => {
+            onVoteAgree={async (action = 1) => {
               if (!user) {
                 alert('로그인이 필요합니다.');
                 setPage && setPage('login');
@@ -71,9 +71,10 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
                 await fetch(`/news/${newsId}/like`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user_id: user.id, action: 1 }),
+                  body: JSON.stringify({ user_id: user.id, action }),
+                  credentials: 'include',
                 });
-                const res = await fetch(`/news/${newsId}`);
+                const res = await fetch(`/news/${newsId}`, { credentials: 'include' });
                 const detail = await res.json();
                 setLike(detail.like ?? detail.likes ?? like);
                 setDislike(detail.dislike ?? detail.dislikes ?? dislike);
@@ -84,7 +85,7 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               }
               setLoading(false);
             }}
-            onVoteDisagree={async () => {
+            onVoteDisagree={async (action = 1) => {
               if (!user) {
                 alert('로그인이 필요합니다.');
                 setPage && setPage('login');
@@ -97,9 +98,10 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
                 await fetch(`/news/${newsId}/dislike`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user_id: user.id, action: 1 }),
+                  body: JSON.stringify({ user_id: user.id, action }),
+                  credentials: 'include',
                 });
-                const res = await fetch(`/news/${newsId}`);
+                const res = await fetch(`/news/${newsId}`, { credentials: 'include' });
                 const detail = await res.json();
                 setLike(detail.like ?? detail.likes ?? like);
                 setDislike(detail.dislike ?? detail.dislikes ?? dislike);

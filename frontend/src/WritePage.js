@@ -32,7 +32,8 @@ function WritePage({ user, setPage, fetchArticles }) {
       const authorId = user && user.id ? user.id : '0';
       const query = `news_url=${encodeURIComponent(site)}&author_id=${encodeURIComponent(authorId)}`;
       const res = await fetch(`${BASE_URL}/news?${query}`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include',
       });
       if (res.ok) {
         setWarning('뉴스가 등록되었습니다!');

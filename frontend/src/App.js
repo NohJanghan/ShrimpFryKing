@@ -50,11 +50,13 @@ function App() {
   const fetchArticles = async () => {
     try {
       // 인기순
-      const hotRes = await fetch('/news?order_by=hot&page=1&page_size=100');
+      const hotRes = await fetch('/news?order_by=hot&page=1&page_size=100', { credentials: 'include' });
+      if (hotRes.status === 401) throw new Error('401');
       const hotResClone = hotRes.clone();
       let hotList = [];
       try {
-        hotList = await hotRes.json();
+        const hotData = await hotRes.json();
+        hotList = Array.isArray(hotData) ? hotData : (Array.isArray(hotData.data) ? hotData.data : []);
       } catch (err) {
         const text = await hotResClone.text();
         console.error('인기 뉴스 응답(JSON 파싱 실패):', err, text);
@@ -64,11 +66,13 @@ function App() {
       console.log('인기 뉴스 데이터:', hotList);
 
       // 최신순
-      const recentRes = await fetch('/news?order_by=recent&page=1&page_size=100');
+      const recentRes = await fetch('/news?order_by=recent&page=1&page_size=100', { credentials: 'include' });
+      if (recentRes.status === 401) throw new Error('401');
       const recentResClone = recentRes.clone();
       let recentList = [];
       try {
-        recentList = await recentRes.json();
+        const recentData = await recentRes.json();
+        recentList = Array.isArray(recentData) ? recentData : (Array.isArray(recentData.data) ? recentData.data : []);
       } catch (err) {
         const text = await recentResClone.text();
         console.error('최신 뉴스 응답(JSON 파싱 실패):', err, text);
@@ -77,9 +81,8 @@ function App() {
       }
       console.log('최신 뉴스 데이터:', recentList);
 
-      // hotList와 recentList를 모두 fetch한 후에 setPopularArticles 호출
-      setPopularArticles(hotList.length > 0 ? hotList : recentList);
-      setLatestArticles(recentList);
+      setPopularArticles(Array.isArray(hotList) ? hotList : []);
+      setLatestArticles(Array.isArray(recentList) ? recentList : []);
 
       // 주제별 분류 (인기+최신 뉴스 모두 포함, 중복 id 방지)
       const themeMap = { 'Politics': [], 'Science/Tech': [], 'Economy': [], 'Etc': [] };
@@ -99,7 +102,8 @@ function App() {
         if (seenIds.has(item.id)) continue;
         seenIds.add(item.id);
         try {
-          const detailRes = await fetch(`/news/${item.id}`);
+          const detailRes = await fetch(`/news/${item.id}`, { credentials: 'include' });
+          if (detailRes.status === 401) continue;
           const detail = await detailRes.json();
           const mappedCategory = categoryMap[detail.category] || 'Etc';
           // 디버깅용 로그 추가
@@ -117,6 +121,17 @@ function App() {
         alert('서버에서 뉴스 데이터를 받아오지 못했습니다.');
       }
     } catch (e) {
+      if (e?.message === '401') {
+        setPopularArticles([]);
+        setLatestArticles([]);
+        setThemeArticles({
+          'Politics': [],
+          'Science/Tech': [],
+          'Economy': [],
+          'Etc': [],
+        });
+        return;
+      }
       alert('뉴스 목록을 불러오는 중 오류가 발생했습니다.');
       console.error(e);
     }
@@ -244,7 +259,7 @@ function App() {
                     onClick={async () => {
                       // 상세 정보 fetch
                       try {
-                        const res = await fetch(`/news/${article.id}`);
+                        const res = await fetch(`/news/${article.id}`, { credentials: 'include' });
                         const detail = await res.json();
                         setSelectedNews(detail);
                         setPage('newsDetail');
@@ -276,7 +291,7 @@ function App() {
                     onClick={async () => {
                       // 상세 정보 fetch
                       try {
-                        const res = await fetch(`/news/${article.id}`);
+                        const res = await fetch(`/news/${article.id}`, { credentials: 'include' });
                         const detail = await res.json();
                         setSelectedNews(detail);
                         setPage('newsDetail');
@@ -318,7 +333,7 @@ function App() {
                   onClick={async () => {
                     // 상세 정보 fetch
                     try {
-                      const res = await fetch(`/news/${article.id}`);
+                      const res = await fetch(`/news/${article.id}`, { credentials: 'include' });
                       const detail = await res.json();
                       setSelectedNews(detail);
                       setPage('newsDetail');
@@ -348,7 +363,7 @@ function App() {
                   onClick={async () => {
                     // 상세 정보 fetch
                     try {
-                      const res = await fetch(`/news/${article.id}`);
+                      const res = await fetch(`/news/${article.id}`, { credentials: 'include' });
                       const detail = await res.json();
                       setSelectedNews(detail);
                       setPage('newsDetail');
@@ -378,7 +393,7 @@ function App() {
                   onClick={async () => {
                     // 상세 정보 fetch
                     try {
-                      const res = await fetch(`/news/${article.id}`);
+                      const res = await fetch(`/news/${article.id}`, { credentials: 'include' });
                       const detail = await res.json();
                       setSelectedNews(detail);
                       setPage('newsDetail');
