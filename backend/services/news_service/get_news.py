@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from utils.convert_type import news_to_detail
+from utils.convert_type import news_to_brief
 from typing import Literal
 from db.DBservice import db
 
@@ -11,7 +11,7 @@ async def get_news(
 ):
     try:
         news_items = db.get_news_list(order_by, page, page_size)
-        news_items = list(map(lambda item: news_to_detail(item), news_items))
+        news_items = list(map(lambda item: news_to_brief(item), news_items))
 
         return news_items
 

@@ -19,7 +19,7 @@ async def create_news(news_url: str):
 
         category = await classify_article(content)
         image_url = get_first_image_url(content)
-        brief = summarize_article(content)
+        brief = await summarize_article(content)
 
         print(f"[INFO] Analysis complete - Category: {category}")
         # Insert in DB

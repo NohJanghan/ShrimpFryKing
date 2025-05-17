@@ -49,7 +49,7 @@ class DBservice():
                 return False
         except:
             raise Exception("Error occurred while checking user existence")
-    
+
     def login(self, user_id: str, password: str) -> bool:
         # True : login success
         # False : login failed
@@ -57,7 +57,7 @@ class DBservice():
             return self.userDB.login(user_id, password)
         except:
             raise Exception("Error occurred while logging in")
-    
+
     def signup_id(self, user_id: str) -> bool:
         # True : id available
         # False : id not available
@@ -65,7 +65,7 @@ class DBservice():
             return self.userDB.signup_id(user_id)
         except:
             raise Exception("Error occurred while signing up ID")
-    
+
     def signup(self, user_id: str, password: str, user_name: str) -> bool:
         # True : signup success
         # False : signup failed
@@ -190,7 +190,7 @@ class DBservice():
             raise Exception("Error occurred while updating comment")
 
     def update_news(self, news_id, likes: int | None = None, dislikes: int | None = None, user_id: str = ""):
-        
+
 
         raise NotImplementedError("This endpoint is not implemented yet.")
 
