@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from routers.dto import comment_dto
 from services.comment_service.post_comment import post_comment
 from services.comment_service.get_comment_summary import get_comment_summary
+from services.comment_service.post_comment_like import post_comment_like
 
 router = APIRouter(prefix="/comment", tags=["comment"])
 
@@ -12,3 +13,7 @@ async def post_comment_handler(news_id: int, comment: comment_dto.PostCommentReq
 @router.get('/summary', response_model=comment_dto.CommentSummary)
 async def get_comment_summary_handler(news_id: int):
     return await get_comment_summary(news_id)
+
+@router.post('/like', response_model=bool)
+async def post_comment_like_handler(news_id: int, comment_item: comment_dto.CommentItem):
+    return await post_comment_like(news_id, comment_item)
