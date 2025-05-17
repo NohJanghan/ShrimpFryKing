@@ -1,8 +1,7 @@
-import asyncio
 from fastapi import HTTPException
 from routers.dto import news_dto
 from crawling.article_extractor import extract_articles_from_url
-from categorizer.article_classifier import classify_article
+from backend.categorizer.gemini_classifier import classify_article
 from summarizer.gemini_summary import summarize_article
 from db.DBservice import db
 from db.entity import CreateNewsItem
@@ -18,11 +17,9 @@ async def create_news(news_url: str):
         if not article or len(content.strip()) == 0:
             raise HTTPException(status_code=400, detail="Failed to extract article content from the given URL.")
 
+        category = await classify_article(content)
         image_url = get_first_image_url(content)
-        category_task = asyncio.create_task(classify_article(content))
-        brief_task = asyncio.create_task(summarize_article(content))
-        category = await category_task
-        brief = await brief_task
+        brief = summarize_article(content)
 
         print(f"[INFO] Analysis complete - Category: {category}")
         # Insert in DB

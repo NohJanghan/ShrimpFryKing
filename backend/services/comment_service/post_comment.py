@@ -1,4 +1,4 @@
-from backend.db.entity import CreateCommentItem
+from db.entity import CreateCommentItem
 from db.DBservice import db
 from routers.dto import comment_dto
 from fastapi import HTTPException
@@ -19,7 +19,7 @@ async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest):
        "comment": data.content
     }
 
-    data.posneg = classify_opinion(text)
+    data.posneg = await classify_opinion(text)
 
     db.create_comment(data, user_id=comment.author_id)
     return True

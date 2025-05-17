@@ -1,12 +1,6 @@
 from fastapi import HTTPException
-from backend.utils.convert_type import news_to_detail
-from routers.dto import news_dto
-from crawling.article_extractor import extract_articles_from_url
-from categorizer.article_classifier import classify_article
-from summarizer.gemini_summary import summarize_article
+from utils.convert_type import news_to_detail
 from db.DBservice import db
-from db.entity import CreateNewsItem
-from utils.article import get_first_image_url
 
 async def get_news_by_id(news_id: int):
     try:

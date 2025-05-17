@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from db.DBservice import db
-from backend.summarizer.gemini_summary import summarize_comment
+from summarizer.gemini_summary import summarize_comment
 
 
 async def get_comment_summary(news_id: int):
