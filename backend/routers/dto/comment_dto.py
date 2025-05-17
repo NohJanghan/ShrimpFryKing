@@ -5,12 +5,16 @@ class AdditionalCommentItem(BaseModel):
     content: str
 
 class CommentItem(BaseModel):
-    author: str
+    news_id: int
+    comment_index: int
     content: str
-    posneg: int # 1 for positive, -1 for negative
-    likes: int
-    dislikes: int
-    additional_comments: list[AdditionalCommentItem]
+    author_id: str
+    parent_id: int | None= None # int이면 additional Comment
+    posneg: int # 0 : neutral, 1 : pos, -1 : neg
+    like: int
+    additional_comment: list[list] # list of Additional Comment(id, content)
+    Isliked: bool
+    # parent_id가 None이 아니면 []
 
 class PostCommentRequest(BaseModel):
     author_id: str
