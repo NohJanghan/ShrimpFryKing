@@ -1,0 +1,324 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-header {
+  background: #fff;
+  padding: 0 32px;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.logo-img {
+  width: 160px;         /* 원하는 가로 크기 */
+  height: 60px;         /* 원하는 세로 크기 */
+  object-fit: contain;  /* 비율 유지하며 꽉 채우기 */
+  display: block;
+  border: none;
+  outline: none;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+.logo-btn {
+  border: none;
+  outline: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.logo-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.nav-tabs ul {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-tabs li a {
+  text-decoration: none;
+  color: #222;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.header-divider {
+  border: none;
+  border-bottom: 4px solid #151515;  /* 더 두껍고 진한 색상 */
+  margin: 0;
+  margin-bottom: 16px;              /* 아래 여백(원하는 만큼 조절) */
+  width: 100%;
+}
+
+.section-divider {
+  border: none;
+  border-bottom: 3px solid #cbc2c2;
+  margin: 48px 0 32px 0; /* 위아래 여백 조절 */
+  width: 100%;
+}
+
+.section-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 24px; /* 왼쪽에서 살짝 떨어지게 */
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.main-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.sub-title {
+  font-size: 1rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.section-link {
+  display: block;
+  text-align: left;
+  width: fit-content;   /* 또는 width: auto; */
+  margin-left: 24px;    /* 기존처럼 왼쪽에서 살짝 떨어지게 */
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.card-grid {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.news-card,
+.theme-card {
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+  min-height: 320px;    /* 높이도 맞추고 싶으면 추가 */
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.news-card .image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.news-card .news-image {
+  max-width: 80%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.theme-card {
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.theme-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+  background: #f5f5f5;
+}
+.theme-card .icon {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+
+
+.news-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16); /* 호버 시 그림자 강조 */
+}
+
+.image-placeholder {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.reaction {
+  margin-top: auto;
+  display: flex;
+  gap: 16px;
+  color: #666;
+  font-size: 1.1rem;
+}
+.content {
+  max-width: 2000px;   /* 원하는 최대 너비로 조절 (예: 900~1200px 추천) */
+  margin: 0 auto;      /* 가운데 정렬 */
+  padding: 32px 24px;  /* 좌우 여백(모바일 대응) */
+  box-sizing: border-box;
+}
+
+.thumb-icon {
+  width: 22px;      /* 원하는 크기로 조절 */
+  height: 22px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.popular-section {
+  margin-top: 32px;
+}
+
+.popular-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.popular-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.news-card {
+  width: 100%;
+  max-width: 600px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: 24px 20px;
+  margin: 0 auto;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 0 0;
+  gap: 8px;
+}
+
+.pagination button {
+  background: #fff;
+  border: 1.5px solid #bbb;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pagination button.active,
+.pagination button:hover {
+  background: #222;
+  color: #fff;
+  border-color: #222;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: #222;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 16px 0 0;
+  text-decoration: none;
+}
+
+.tab-btn:focus {
+  outline: 2px solid #888;
+}
+
+.theme-dropdown {
+  position: absolute;
+  top: 100%;
+  left: -40px;
+  background: #fff;
+  border: 1.5px solid #bbb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: 8px 0;
+  z-index: 10;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.theme-btn {
+  background: none;
+  border: none;
+  color: #222;
+  font-size: 1rem;
+  padding: 8px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.theme-btn:hover {
+  background: #f0f0f0;
+}
