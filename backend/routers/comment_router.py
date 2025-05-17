@@ -12,5 +12,5 @@ async def post_comment_handler(news_id: int, comment: comment_dto.PostCommentReq
     raise NotImplementedError("This function is not implemented yet.")
 
 @router.get('/summary', response_model=comment_dto.CommentSummary)
-async def get_comment_summary(news_id: int):
+async def get_comment_summary_handler(news_id: int):
     raise NotImplementedError("This function is not implemented yet.")
