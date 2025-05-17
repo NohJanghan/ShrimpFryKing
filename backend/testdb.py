@@ -1,10 +1,35 @@
 from db.DBservice import *
 from db.entity import *
 
-db.signup('0', '0', '0')
+# print(db.signup_id('0'))
+# False
 
-print(len(db.get_news_list('recent', 1, 10, '0')))
+# print(db.signup('0', '0', '0'))
+# True
 
+# print(len(db.get_news_list('recent', 1, 10, '0')))
+# 1
+
+# print(db.get_news_list('recent', 1, 10, '0')[0].title)
+# [단독] ...
+
+# print(db.create_comment(CreateCommentItem(1, '0', '0', 0, None), '0'))
+# None
+
+# print(db.get_news_list('recent', 1, 10, '0')[0].comment[0].author_id)
+# 0
+
+# print(db.update_comment(1, 0, None, 1, "", '0'))
+# None
+
+# print(db.get_news_list('recent', 1, 10, '0')[0].comment[0].like)
+# 1
+
+# print(db.update_news(1, 1, None, "0"))
+# None
+
+# print(db.get_news_list('recent', 1, 10, '0')[0].like)
+# 1
 
 exit(0)
 try:

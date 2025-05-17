@@ -286,11 +286,11 @@ class NewsDB(DB):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "news"
-        self.news_id = 0
         self._make_table(self.table_name, {
             "news_id" : "int", "title" : "text", "content" : "text", "brief" : "text",
             "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int",
             "category" : "text", "author_id" : "text", "comment" : "text" , "likelist" : "text", "dislikelist" : "text"})
+        self.news_id = len(self._find_table(self.table_name, {}, {}))
         # title (text) / content (text) / brief (text)
         # URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int)
         # category (text) / author_id (text) / comment (text) / likelist (text) / dislikelist (text)
@@ -319,13 +319,13 @@ class NewsDB(DB):
             print("insert news error")
             return False
         
-    def update_news(self, news_id:int, like=None, dislike=None, opinion=None, comment:list=None, likelist=None, dislikelist=None) -> bool:
+    def update_news(self, news_id:int, like=None, dislike=None, opinion=None, comment:list=None, likelist=None, dislikelist=None, user_id="") -> bool:
         # True : update success
         # False : update failed
         # comment : list of comment
         # comment = CommentItem()
         try:
-            if self.get_news(news_id) == {}:
+            if self.get_news(news_id, user_id) == {}:
                 print("news not found")
                 return False
             for attr in ["like", "dislike", "opinion", "comment", "likelist", "dislikelist"]:
@@ -354,7 +354,7 @@ class NewsDB(DB):
         try:
             return checkliked(self._find_table(self.table_name, {"title" : ["same", title]}, {})[0], user_id)
         except:
-            print("find title error")
+            print("no request title finded")
             return {}
 
     def recent_news(self, num:int, user_id:str) -> list:

@@ -29,10 +29,13 @@ def get_news_from_dict(newsdict: dict, user_id:str) -> NewsItem:
             opinion = newsdict["opinion"],
             comment = comment,
             Isliked = newsdict["Isliked"],
-            Isdisliked = newsdict["Isdisliked"]
+            Isdisliked = newsdict["Isdisliked"],
+            likelist = newsdict["likelist"].split(SEPERATER),
+            dislikelist = newsdict["dislikelist"].split(SEPERATER)
         )
         return news
     except Exception as e:
+        print("-------------------")
         print(e)
         raise Exception("Error occurred while getting news from dict")
 
@@ -101,12 +104,10 @@ class DBservice():
         except:
             raise Exception("Error occurred while fetching news")
 
-    def create_news(self, data: CreateNewsItem, user_id: str = "") -> None:
+    def create_news(self, data: CreateNewsItem) -> None:
         try:
-            if not self.is_user_exist(user_id):
+            if not self.is_user_exist(data.author_id):
                 raise Exception("User not found")
-            if data.author_id != user_id:
-                raise Exception("User ID does not match")
             data = data.replace()
             self.newsDB.insert_news(data.title, data.content, data.brief, data.url, data.image_url, data.category, data.author_id)
         except Exception as e:
@@ -121,15 +122,15 @@ class DBservice():
                 raise Exception("User not found")
             if data.author_id != user_id:
                 raise Exception("User ID does not match")
-            news = self.get_news(data.news_id, user_id)
-            if news is {}:
+            newsdict = self.newsDB.get_news(data.news_id, user_id)
+            if newsdict is {}:
                 raise Exception("News not found")
-            news = get_news_from_dict(news, user_id)
+            news = get_news_from_dict(newsdict, user_id)
             data = data.replace()
             if data.parent_id is None:
                 newscomment = news.comment
                 newscomment.append(CommentItem(news.news_id, data.author_id, data.content, data.posneg))
-                ret = self.newsDB.update_news(data.news_id, comment=newscomment)
+                ret = self.newsDB.update_news(data.news_id, comment=newscomment, user_id=user_id)
                 if not ret:
                     raise Exception("Failed to update news with new comment")
             else:
@@ -137,12 +138,13 @@ class DBservice():
                 newscomment = news.comment
                 if data.parent_id < len(newscomment) and data.parent_id >= 0:
                     newscomment[data.parent_id].insert_additional_comment(data.author_id, data.content)
-                    ret = self.newsDB.update_news(data.news_id, comment=newscomment)
+                    ret = self.newsDB.update_news(data.news_id, comment=newscomment, user_id=user_id)
                     if not ret:
                         raise Exception("Failed to update news with new additional comment")
                 else:
                     raise Exception("Parent comment not found")
         except Exception as e:
+            print("-------------------")
             print(e)
             raise Exception(e)
         except:
@@ -153,7 +155,7 @@ class DBservice():
         try:
             if not self.is_user_exist(user_id):
                 raise Exception("User not found")
-            news = self.get_news(news_id, user_id)
+            news = self.newsDB.get_news(news_id, user_id)
             if news is {}:
                 raise Exception("News not found")
             news = get_news_from_dict(news, user_id)
@@ -163,10 +165,10 @@ class DBservice():
 
             if child_comment_index is None:
                 if likes is not None:
-                    if likes == 1 and not comment.getIsliked:
-                        comment.setlike(True)
-                    elif likes == -1 and comment.getIsliked:
-                        comment.setdislike(True)
+                    if likes == 1 and not comment.Isliked:
+                        comment.setlike(True, user_id)
+                    elif likes == -1 and comment.Isliked:
+                        comment.setlike(False, user_id)
                 if content != "":
                     if comment.author_id == user_id:
                         comment.content = content
@@ -180,7 +182,7 @@ class DBservice():
                         raise Exception("User ID does not match")
                     comment.additional_comment[child_comment_index][1] = content
             news.comment[comment_index] = comment
-            ret = self.newsDB.update_news(data.news_id, comment=news.comment)
+            ret = self.newsDB.update_news(news_id, comment=news.comment, user_id=user_id)
             if not ret:
                 raise Exception("Failed to update news with new comment")
         except Exception as e:
@@ -193,21 +195,21 @@ class DBservice():
         try:
             if not self.is_user_exist(user_id):
                 raise Exception("User not found")
-            news = self.get_news(news_id, user_id)
+            news = self.newsDB.get_news(news_id, user_id)
             if news is {}:
                 raise Exception("News not found")
             news = get_news_from_dict(news, user_id)
             if likes is not None:
                 if likes == 1 and not news.Isliked:
-                    news.setlike(True)
+                    news.setlike(True, user_id)
                 elif likes == -1 and news.Isliked:
-                    news.setlike(False)
+                    news.setlike(False, user_id)
             if dislikes is not None:
                 if dislikes == 1 and not news.Isdisliked:
-                    news.setdislike(True)
+                    news.setdislike(True, user_id)
                 elif dislikes == -1 and news.Isdisliked:
-                    news.setdislike(False)
-            ret = self.newsDB.update_news(news.news_id, like=news.like, dislike=news.dislike, Isliked=news.Isliked, Isdisliked=news.Isdisliked)
+                    news.setdislike(False, user_id)
+            ret = self.newsDB.update_news(news.news_id, like=news.like, dislike=news.dislike, opinion=news.like+news.dislike, likelist=news.likelist, dislikelist=news.dislikelist, user_id=user_id)
             if not ret:
                 raise Exception("Failed to update news with new like/dislike")
         except Exception as e:

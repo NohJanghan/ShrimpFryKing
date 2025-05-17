@@ -75,12 +75,12 @@ class CreateNewsItem:
         return self
 
 class CreateCommentItem:
-    content: str
     news_id: int
     author_id: str
+    content: str
     posneg: int # 0 : neutral, 1 : pos, -1 : neg
     parent_id: int | None= None # int이면 additional Comment
-    def __init__(self, content:str="", news_id:int=0, author_id:str="", posneg:int=0, parent_id:int | None = None):
+    def __init__(self, news_id:int=0, author_id:str="", content:str="", posneg:int=0, parent_id:int | None = None):
         self.content = content
         self.news_id = news_id
         self.author_id = author_id
@@ -106,7 +106,9 @@ class NewsItem:
     # comment: list['CommentItem'] # list of CommentItem
     # Isliked: bool
     # Isdisliked: bool
-    def __init__(self, news_id:int=0, title:str="", content:str="", url:str="", image_url:str="", category:str="", brief:str="", author_id:str="", date:int=0, like:int=0, dislike:int=0, opinion:int=0, comment:list['CommentItem']=[], Isliked:bool=False, Isdisliked:bool=False):
+    # likelist: list[str]
+    # dislikelist: list[str]
+    def __init__(self, news_id:int=0, title:str="", content:str="", url:str="", image_url:str="", category:str="", brief:str="", author_id:str="", date:int=0, like:int=0, dislike:int=0, opinion:int=0, comment:list['CommentItem']=[], Isliked:bool=False, Isdisliked:bool=False, likelist:list[str]=[], dislikelist:list[str]=[]):
         self.news_id = news_id
         self.title = title
         self.content = content
@@ -122,12 +124,30 @@ class NewsItem:
         self.comment = comment
         self.Isliked = Isliked
         self.Isdisliked = Isdisliked
+        self.likelist = likelist
+        self.dislikelist = dislikelist
     def replace(self):
         self.title = seperaterUNRUN(self.title)
         self.content = seperaterUNRUN(self.content)
         self.brief = seperaterUNRUN(self.brief)
-        self.comment = [comment.replace for comment in self.comment]
+        self.comment = [comment.replace() for comment in self.comment]
         return self
+    def setlike(self, like:bool, user_id:str):
+        if like == True:
+            self.like += 1
+            self.likelist.append(user_id)
+        else:
+            self.like -= 1
+            self.likelist.remove(user_id)
+        self.Isliked = like
+    def setdislike(self, dislike:bool, user_id:str):
+        if dislike == True:
+            self.dislike += 1
+            self.dislikelist.append(user_id)
+        else:
+            self.dislike -= 1
+            self.dislikelist.remove(user_id)
+        self.Isdisliked = dislike
 
 class CommentItem:
     news_id: int
@@ -141,8 +161,8 @@ class CommentItem:
     Isliked: bool
     # parent_id가 None이 아니면 []
 
-    def __init__(self, id:str="", content:str="", posneg:int=0):
-        self.news_id = 0
+    def __init__(self, news_id:int=0, id:str="", content:str="", posneg:int=0):
+        self.news_id = news_id
         self.author_id = id
         self.content = content
         self.posneg = posneg
@@ -161,7 +181,7 @@ class CommentItem:
             return False
     def get_string(self) -> str:
         # return comment string
-        ret = self.news_id + SEPERATER + self.author_id + SEPERATER + self.content + SEPERATER + str(self.posneg) + SEPERATER + str(self.like) + SEPERATER + str(innerSEPERATER.join(self.likelist)) + SEPERATER
+        ret = str(self.news_id) + SEPERATER + self.author_id + SEPERATER + self.content + SEPERATER + str(self.posneg) + SEPERATER + str(self.like) + SEPERATER + str(innerSEPERATER.join(self.likelist)) + SEPERATER
         for c in self.additional_comment:
             ret += c[0] + SEPERATER + c[1] + SEPERATER
         return ret
@@ -199,11 +219,3 @@ class CommentItem:
             self.like -= 1
             self.likelist.remove(user_id)
         self.Isliked = like
-    def setdislike(self, dislike:bool, user_id:str):
-        if dislike == True:
-            self.dislike += 1
-            self.dislikelist.append(user_id)
-        else:
-            self.dislike -= 1
-            self.dislikelist.remove(user_id)
-        self.Isdisliked = dislike
