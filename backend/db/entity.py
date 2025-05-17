@@ -30,6 +30,8 @@ class NewsItem:
     dislike: int
     opinion: int
     comment: list['CommentItem'] # list of CommentItem
+    Isliked: bool
+    Isdisliked: bool
 
 class CommentItem:
     news_id: int
@@ -37,20 +39,23 @@ class CommentItem:
     content: str
     author_id: str
     parent_id: int | None= None # int이면 additional Comment
-    posneg: int
+    posneg: int # 0 : neutral, 1 : pos, -1 : neg
     like: int
     dislike: int
     additional_comment: list[list] # list of Additional Comment(id, content)
+    Isliked: bool
+    Isdisliked: bool
     # parent_id가 None이 아니면 []
 
     def __init__(self, id:str, content:str):
-        self.id = id
+        self.author_id = id
         self.content = content
         self.posneg = 0
-        # 0 : neutral, 1 : pos, -1 : neg
         self.like = 0
         self.dislike = 0
         self.additional_comment = []
+        self.Isliked = False
+        self.Isdisliked = False
     def insert_additional_comment(self, id:str, content:str) -> bool:
         # True : insert success
         # False : insert failed
@@ -62,7 +67,7 @@ class CommentItem:
             return False
     def get_string(self) -> str:
         # return comment string
-        ret = self.id + SEPERATOR + self.content + SEPERATOR + str(self.posneg) + SEPERATOR + str(self.like) + SEPERATOR + str(self.dislike) + SEPERATOR
+        ret = self.id + SEPERATOR + self.content + SEPERATOR + str(self.posneg) + SEPERATOR + str(self.like) + SEPERATOR + str(self.dislike) + SEPERATOR + str(self.Isliked) + SEPERATOR + str(self.Isdisliked) + SEPERATOR
         for c in self.additional_comment:
             ret += c[0] + SEPERATOR + c[1] + SEPERATOR
         return ret
@@ -75,8 +80,10 @@ class CommentItem:
             self.posneg = int(lines[2])
             self.like = int(lines[3])
             self.dislike = int(lines[4])
+            self.Isliked = bool(int(lines[5]))
+            self.Isdisliked = bool(int(lines[6]))
             self.additional_comment = []
-            for i in range(5, len(lines), 2):
+            for i in range(7, len(lines), 2):
                 if i + 1 < len(lines):
                     self.additional_comment.append([lines[i], lines[i + 1]])
             return True
