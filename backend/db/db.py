@@ -273,7 +273,7 @@ class UserDB(DB):
         try:
             return self._find_table(self.table_name, {"id" : ["same", id]}, {})[0]
         except:
-            print("non seen user")
+            print("unseen user")
             return {}
     def get_username(self, id:str) -> str:
         # find user in user database

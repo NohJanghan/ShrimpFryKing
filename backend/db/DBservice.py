@@ -200,11 +200,15 @@ class DBservice():
             if likes is not None:
                 if likes == 1 and not news.Isliked:
                     news.setlike(True, user_id)
+                    if news.Isdisliked:
+                        news.setdislike(False, user_id)
                 elif likes == -1 and news.Isliked:
                     news.setlike(False, user_id)
             if dislikes is not None:
                 if dislikes == 1 and not news.Isdisliked:
                     news.setdislike(True, user_id)
+                    if news.Isliked:
+                        news.setlike(False, user_id)
                 elif dislikes == -1 and news.Isdisliked:
                     news.setdislike(False, user_id)
             ret = self.newsDB.update_news(news.news_id, like=news.like, dislike=news.dislike, opinion=news.like+news.dislike, likelist=news.likelist, dislikelist=news.dislikelist, user_id=user_id)
