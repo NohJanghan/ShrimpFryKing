@@ -1,41 +1,65 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Request
+=======
+from fastapi import APIRouter, HTTPException, Request, Response
+>>>>>>> c54856d61d323149aa15c5cbdf1ffec9c1ffa19b
 from routers.dto import news_dto
 from typing import Literal
 from services.news_service.get_news import get_news
 from services.news_service.get_news_by_id import get_news_by_id
 from services.news_service.create_news import create_news
+<<<<<<< HEAD
 from db.DBservice import db
 from fastapi.concurrency import run_in_threadpool
+=======
+from services.news_service.like_news import like_news, dislike_news, remove_like_news, remove_dislike_news
+from services.user_service import session_store
+from routers.middlewares import auth_middleware
+>>>>>>> c54856d61d323149aa15c5cbdf1ffec9c1ffa19b
 
 router = APIRouter(prefix="/news", tags=["news"])
 
 @router.get("/", response_model=list[news_dto.NewsItemBrief])
 async def get_news_handler(
     order_by: Literal['recent', 'hot'],
+    request: Request,
+    response: Response,
     page: int = 1,
-    page_size: int = 10):
-    return await get_news(order_by, page, page_size)
+    page_size: int = 10
+):
+    user_id = auth_middleware(request, response)
+    print(f"User ID: {user_id}")
+
+    return await get_news(order_by, user_id, page, page_size)
 
 @router.get("/{news_id}", response_model=news_dto.NewsItemDetail)
-async def get_news_by_id_handler(news_id: int):
-    return await get_news_by_id(news_id)
+async def get_news_by_id_handler(news_id: int, request: Request, response: Response):
+    user_id = auth_middleware(request, response)
+    return await get_news_by_id(news_id, user_id)
 
 @router.post("/", response_model=bool)
-async def create_news_handler(news_url: str):
-    return await create_news(news_url)
+async def create_news_handler(news_url: str, response: Response, request: Request):
+    user_id = auth_middleware(request, response)
+    return await create_news(news_url, user_id)
 
-@router.post("/{news_id}/like", response_model=bool)
-async def like_news(news_id: int, request: Request):
-    data = await request.json()
-    user_id = data.get("user_id")
-    action = data.get("action", 1)  # 1: 좋아요, -1: 취소
-    await run_in_threadpool(db.update_news, news_id, likes=action, user_id=user_id)
-    return True
+@router.post("/like/{news_id}", response_model=bool)
+async def like_news_handler(news_id: int, request: Request, response: Response):
+    user_id = auth_middleware(request, response)
+    return await like_news(news_id, user_id)
 
-@router.post("/{news_id}/dislike", response_model=bool)
-async def dislike_news(news_id: int, request: Request):
-    data = await request.json()
-    user_id = data.get("user_id")
-    action = data.get("action", 1)  # 1: 싫어요, -1: 취소
-    await run_in_threadpool(db.update_news, news_id, dislikes=action, user_id=user_id)
-    return True
+
+@router.post("/dislike/{news_id}", response_model=bool)
+async def dislike_news_handler(news_id: int, request: Request, response: Response):
+    user_id = auth_middleware(request, response)
+    return await dislike_news(news_id, user_id)
+
+@router.delete("/like/{news_id}", response_model=bool)
+async def remove_like_news_handler(news_id: int, request: Request, response: Response):
+    user_id = auth_middleware(request, response)
+    return await remove_like_news(news_id, user_id)
+
+
+@router.delete("/dislike/{news_id}", response_model=bool)
+async def remove_dislike_news_handler(news_id: int, request: Request, response: Response):
+    user_id = auth_middleware(request, response)
+    return await remove_dislike_news(news_id, user_id)

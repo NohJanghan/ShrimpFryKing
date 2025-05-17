@@ -32,10 +32,8 @@ def checkliked(newsdict:dict, user_id:str) -> dict:
     if newsdict == {}:
         return {}
     # check if user liked or disliked the news
-    likelist = list(filter(lambda x: x != '', newsdict["likelist"].split(SEPERATER)))
-    dislikelist = list(filter(lambda x: x != '', newsdict["dislikelist"].split(SEPERATER)))
-    newsdict["Isliked"] = True if user_id in likelist else False
-    newsdict["Isdisliked"] = True if user_id in dislikelist else False
+    newsdict["Isliked"] = True if user_id in newsdict["likelist"].split(SEPERATER) else False
+    newsdict["Isdisliked"] = True if user_id in newsdict["dislikelist"].split(SEPERATER) else False
     return newsdict
 
 class DB:
@@ -106,6 +104,7 @@ class DB:
     def _find_table(self, table_name:str, where:dict, orderbydict:dict, limit = 0) -> list:
         #SELECT * FROM {table name} where {prop} {operator} {condition} and {prop} {operator} {condition} order by {prop} asc/desc {prop} asc/desc limit {num};
         val_list = []
+        print(where, orderbydict)
         cmd = "select * from " + table_name
         if len(where) != 0:
             cmd_list = []
@@ -274,7 +273,7 @@ class UserDB(DB):
         try:
             return self._find_table(self.table_name, {"id" : ["same", id]}, {})[0]
         except:
-            print("find user error")
+            print("unseen user")
             return {}
     def get_username(self, id:str) -> str:
         # find user in user database
@@ -371,7 +370,7 @@ class NewsDB(DB):
         # subdate : recent days (default 14)
         # num : number of news
         try:
-            return list(map(lambda x : checkliked(x , user_id), self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime, subdate)]}, {"opinion" : "desc"}, num)))
+            return list(map(lambda x : checkliked(x , user_id), self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime(), subdate)]}, {"opinion" : "desc"}, num)))
         except:
             print("hot news error")
             return ""

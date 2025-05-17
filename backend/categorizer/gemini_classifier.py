@@ -38,3 +38,19 @@ async def classify_opinion(text: dict) -> str:
     """
     response = await model.generate_content_async(prompt)
     return response.text.strip()
+
+async def classify_content_risk(text: str) -> str:
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    prompt = f"""
+    You are a content risk and swear, slang classifier.
+    If there exist risky words, swears, or slangs in the article, classify it as "High Risk".
+    Given the article below, classify it into one of the following categories:
+
+    Only respond with one of the following:
+    [Low Risk, High Risk]
+
+    Article:
+    {text}
+    """
+    response = await model.generate_content_async(prompt)
+    return response.text.strip()

@@ -10,7 +10,7 @@ from utils.article import get_first_image_url
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
-async def create_news(news_url: str, author_id: str = '0'):
+async def create_news(news_url: str, user_id: str) -> bool:
     try:
         article = extract_articles_from_url(news_url)
         print(f"[INFO] Extracted article - article: {article}")
@@ -32,7 +32,11 @@ async def create_news(news_url: str, author_id: str = '0'):
             image_url=image_url,
             category=category,
             brief=brief,
+<<<<<<< HEAD
             author_id=author_id,  # 실제 author_id 사용
+=======
+            author_id=user_id,
+>>>>>>> c54856d61d323149aa15c5cbdf1ffec9c1ffa19b
         )
         # print(f"[INFO] Inserting news into DB - Title: {title}, URL: {news_url}")
         db.create_news(data)
