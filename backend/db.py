@@ -206,14 +206,14 @@ class news(db):
         except:
             print("find title error")
             return {}
-    
+
     def recent_news(self, num:int) -> list:
         try:
             return self._find_table(self.table_name, {}, {"date" : "desc"}, num)
         except:
             print("recent news error")
             return []
-    
+
     def hot_news(self, num:int, subdate = 14) -> list:
         # subdate : recent days (default 14)
         # num : number of news
@@ -222,7 +222,7 @@ class news(db):
         except:
             print("hot news error")
             return ""
-    
+
     def category_news(self, category:str, num:int) -> list:
         try:
             return self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)
