@@ -8,6 +8,7 @@ CREATE DATABASE (name);
 import sqlite3 as sql3
 import pandas as pd
 import numpy as np
+import datetime
 # for isnan checking
 
 def splitjoin(string, spl_list, change):
@@ -15,43 +16,68 @@ def splitjoin(string, spl_list, change):
         string = change.join(string.split(spl))
     return string
 
+def nowtime():
+    # return current time in yyyymmddhhmmss
+    now = datetime.datetime.now()
+    return int(now.strftime("%Y%m%d%H%M%S"))
+
+def timesubdate(time:int, subdate:int) -> int:
+    # return time - subdate in yyyymmddhhmmss
+    date = datetime.datetime.strptime(str(time), "%Y%m%d%H%M%S")
+    date = date - datetime.timedelta(days=subdate)
+    return int(date.strftime("%Y%m%d%H%M%S"))
+
 class db:
     def __init__(self, dbname:str):
         self.dbname = dbname
         self.conn = sql3.connect(dbname+".db")
         self.cur = self.conn.cursor()
-        self.attr = {}
+        self.attr = []
     def __del__(self):
-        self.exit()
-    def exit(self):
+        self._exit()
+    def _exit(self):
         self.conn.close()
-    def exec(self, cmd:str):
+    def _exec(self, cmd:str):
         try:
             self.cur.execute(cmd)
+            self.conn.commit()
         except:
             print(cmd + "exec func error")
             raise Exception("exec error")
-    def fetch(self) -> list:
+    def _fetch(self) -> list:
+        # list of dictioinaries
+        # [{prop1 : value1, prop2 : value2}, {prop1 : value1, prop2 : value2}]
         try:
-            return self.cur.fetchall()
+            ret = self.cur.fetchall()
+            if len(ret) == 0:
+                return []
+            else:
+                ret_list = []
+                for r in ret:
+                    ret_dict = {}
+                    for i, v in enumerate(r):
+                        ret_dict[self.attr[i]] = v
+                    ret_list.append(ret_dict)
+                return ret_list
         except:
             print("fetch func error")
             raise Exception("fetch error")
-    def make_table(self, table_name:str, prop:dict) -> bool:
+    def _make_table(self, table_name:str, prop:dict) -> bool:
         #CREATE TABLE IF NOT EXISTS {table name} ({property} {type(len)}, {property} {type(len)})
         cmd = "create table if not exists " + table_name + " "
         if len(prop) != 0:
             cmd_list = []
             for _prop, _type_option in prop.items():
                 cmd_list.append(_prop + " " + _type_option)
+                self.attr.append(_prop)
             cmd += "(" + ", ".join(cmd_list) + ")"
         try:
-            self.exec(cmd)
+            self._exec(cmd)
             return True
         except:
             print("mk table exec error")
             return False
-    def insert_table(self, table_name:str, val:list) -> bool:
+    def _insert_table(self, table_name:str, val:list) -> bool:
         #INSERT INTO {table name} VALUES({value1}, {value2})
         if len(val) == 0:
             return False
@@ -61,14 +87,13 @@ class db:
             cmd_list.append(str(v))
         cmd += ", ".join(cmd_list) + ")"
         try:
-            self.exec(cmd)
-            self.conn.commit()
+            self._exec(cmd)
             return True
         except:
             print("insert table exec error")
             return False
-    def select_where_table(self, table_name:str, where:dict):
-        #SELECT * FROM {table name} where {prop} {operator} {condition} and {prop} {operator} {condition};
+    def _find_table(self, table_name:str, where:dict, orderbydict:dict, limit = 0) -> list:
+        #SELECT * FROM {table name} where {prop} {operator} {condition} and {prop} {operator} {condition} order by {prop} asc/desc {prop} asc/desc limit {num};
         cmd = "select * from " + table_name
         if len(where) != 0:
             cmd_list = []
@@ -92,25 +117,28 @@ class db:
                     cst += "is " + _value
                 cmd_list.append(cst)
             cmd += " where " + " and ".join(cmd_list)
+        if len(orderbydict) != 0:
+            cmd_list = []
+            for _prop, _option in orderbydict.items():
+                cmd_list.append(_prop + " " + _option)
+            cmd += " order by " + ", ".join(cmd_list)
+        if limit != 0:
+            cmd += " limit " + str(limit)
         try:
-            self.exec(cmd)
-            self.conn.commit()
-            self.data = "\n".join(self.fetch())
-            return self.data
+            self._exec(cmd)
+            return self._fetch()
         except:
             print("select where exec/fetch error")
-            return ""
+            return []
 
 class user(db):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "user"
-        self.make_table(self.table_name, {"id" : "text", "pw" : "text", "username" : "text"})
+        self._make_table(self.table_name, {"id" : "text", "pw" : "text", "username" : "text"})
     def login(self, id:str, pw:str) -> bool:
-        cmd = "select * from " + self.table_name + " where user = \"" + user + "\" and pw = \"" + pw + "\""
         try:
-            self.exec(cmd)
-            if len(self.fetch()) == 0:
+            if len(self._find_table(self.table_name, {"id" : ["same", id], "pw" : ["same", pw]}, {})) == 0:
                 return False
             else:
                 return True
@@ -119,10 +147,9 @@ class user(db):
     def signup_id(self, id:str) -> bool:
         # True : id available
         # False : id not available
-        cmd = "select * from " + self.table_name + " where id = \"" + id + "\""
         try:
-            self.exec(cmd)
-            if len(self.fetch()) != 0:
+            if len(self._find_table(self.table_name, {"id" : ["same", id]}, {})) != 0:
+                print("id already exists")
                 return False
             else:
                 return True
@@ -132,7 +159,7 @@ class user(db):
         # True : signup success
         # False : signup failed
         try:
-            self.insert_table(self.table_name, [id, pw, username])
+            self._insert_table(self.table_name, [id, pw, username])
             return True
         except:
             return False
@@ -141,20 +168,54 @@ class news(db):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "news"
-        self.make_table(self.table_name, {"title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "id" : "text", "category" : "text", "month" : "int", "date" : "int", "stringdate" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / id (text) / category (text) / month (int) / date (int) / stringdate (text)
-    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, id:str, category:str, month:int, date:int, stringdate:str) -> bool:
-        return self.insert_table(self.table_name, [title, content, brief, URL, imageURL, id, category, month, date, stringdate])
-    def get_news(self, id:str) -> str:
-        cmd = "select * from " + self.table_name + " where id = \"" + id + "\""
+        self._make_table(self.table_name, {"title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text)
+
+    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, date:int, good:int, bad:int, opinion:int, category:str, id:str) -> bool:
+        # True : insert success
+        # False : insert failed
         try:
-            self.exec(cmd)
-            return self.fetch()
+            if self.get_news(title) != {}:
+                print("title already exists")
+                return False
+            self._insert_table(self.table_name, [title, content, brief, URL, imageURL, date, good, bad, opinion, category, id])
+            return True
         except:
-            print("get news error")
+            print("insert news error")
+            return False
+
+    def get_news(self, title:str) -> dict:
+        # find title in news database
+        try:
+            return self._find_table(self.table_name, {"title" : ["same", title]}, {})[0]
+        except:
+            print("find title error")
+            return {}
+    
+    def recent_news(self, num:int) -> list:
+        try:
+            return self._find_table(self.table_name, {}, {"date" : "desc"}, num)
+        except:
+            print("recent news error")
+            return []
+    
+    def hot_news(self, num:int, subdate = 14) -> list:
+        # subdate : recent days (default 14)
+        # num : number of news
+        try:
+            return self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime, subdate)]}, {"opinion" : "desc"}, num)
+        except:
+            print("hot news error")
+            return ""
+    
+    def category_news(self, category:str, num:int) -> list:
+        try:
+            return self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)
+        except:
+            print("category news error")
             return ""
 
 
 if __name__ == '__main__':
-    db_name = input("give db name without .db : ")
+    db_name = "temp.db" # database name
     wp = db(db_name)
