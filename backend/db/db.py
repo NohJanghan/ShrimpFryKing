@@ -220,8 +220,8 @@ class NewsDB(DB):
         super().__init__(dbname)
         self.table_name = "news"
         self.news_id = 0
-        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text", "comment" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text) / comment (text)
+        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int", "category" : "text", "id" : "text", "comment" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int) / category (text) / id (text) / comment (text)
 
     def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, id:str) -> bool:
         # True : insert success
@@ -305,4 +305,4 @@ class NewsDB(DB):
 
 if __name__ == '__main__':
     db_name = "temp.db" # database name
-    wp = db(db_name)
+    wp = DB(db_name)

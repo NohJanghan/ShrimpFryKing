@@ -42,4 +42,3 @@ class Commentdata():
         except:
             print("reset comment error")
             return False
-
