@@ -9,6 +9,7 @@ import sqlite3 as sql3
 import pandas as pd
 import numpy as np
 import datetime
+from entity import *
 # for isnan checking
 
 def splitjoin(string, spl_list, change):
@@ -27,7 +28,7 @@ def timesubdate(time:int, subdate:int) -> int:
     date = date - datetime.timedelta(days=subdate)
     return int(date.strftime("%Y%m%d%H%M%S"))
 
-class db:
+class DB:
     def __init__(self, dbname:str):
         self.dbname = dbname
         self.conn = sql3.connect(dbname+".db")
@@ -167,7 +168,7 @@ class db:
             print("update where exec error")
             return False
 
-class user(db):
+class UserDB(DB):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "user"
@@ -214,15 +215,15 @@ class user(db):
             print("find user error")
             return ""
 
-class news(db):
+class NewsDB(DB):
     def __init__(self, dbname:str):
         super().__init__(dbname)
         self.table_name = "news"
         self.news_id = 0
-        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "good" : "int", "bad" : "int", "opinion" : "int", "category" : "text", "id" : "text", "comment" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / good (int) / bad (int) / opinion (int) / category (text) / id (text) / comment (text)
+        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int", "category" : "text", "author_id" : "text", "comment" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int) / category (text) / author_id (text) / comment (text)
 
-    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, id:str) -> bool:
+    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, author_id:str) -> bool:
         # True : insert success
         # False : insert failed
         try:
@@ -231,25 +232,33 @@ class news(db):
                 return False
             news_id = self.news_id + 1
             date = nowtime()
-            good = 0
-            bad = 0
+            like = 0
+            dislike = 0
             opinion = 0
             comment = ""
-            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, good, bad, opinion, category, id, comment])
+            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, like, dislike, opinion, category, author_id, comment])
             self.news_id = news_id
             return True
         except:
             print("insert news error")
             return False
         
-    def update_news(self, news_id:int, good=None, bad=None, opinion=None, comment=None) -> bool:
+    def update_news(self, news_id:int, good=None, bad=None, opinion=None, commentlist:list=None) -> bool:
         # True : update success
         # False : update failed
+        # comment : list of comment
+        # comment = CommentItem()
         try:
             if self.get_news(news_id) == {}:
                 print("news not found")
                 return False
-            self._exec("update " + self.table_name + " set title = '" + title + "', content = '" + content + "', brief = '" + brief + "', URL = '" + URL + "', imageURL = '" + imageURL + "', category = '" + category + "' where news_id = " + str(news_id))
+            for attr in ["good", "bad", "opinion", "comment"]:
+                if eval(attr) != None:
+                    if attr == "comment":
+                        comment = overSEPERATOR.join(list(map(lambda x : x.get_string(), commentlist)))
+                        self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : comment})
+                    else:
+                        self._update_table(self.table_name, {"news_id" : ["same", news_id]}, {attr : str(eval(attr))})
             return True
         except:
             print("update news error")
@@ -294,50 +303,6 @@ class news(db):
             print("category news error")
             return ""
 
-SEPERATOR = "|||SEP|||"
-
-class comment():
-    def __init__(self, id:str, content:str):
-        self.id = id
-        self.content = content
-        self.posneg = 0
-        self.like = 0
-        self.dislike = 0
-        # 0 : neutral, 1 : pos, -1 : neg
-        self.additional_comment = []
-    def insert_additional_comment(self, id:str, content:str) -> bool:
-        # True : insert success
-        # False : insert failed
-        try:
-            self.additional_comment.append([id, content])
-            return True
-        except:
-            print("insert comment error")
-            return False
-    def ret_string(self) -> str:
-        # return comment string
-        ret = self.id + SEPERATOR + self.content + SEPERATOR + str(self.posneg) + SEPERATOR + str(self.like) + SEPERATOR + str(self.dislike) + SEPERATOR
-        for c in self.additional_comment:
-            ret += c[0] + SEPERATOR + c[1] + SEPERATOR
-        return ret
-    def reset_using_string(self, string:str) -> bool:
-        # reset comment using string
-        try:
-            lines = string.split(SEPERATOR)
-            self.id = lines[0]
-            self.content = lines[1]
-            self.posneg = int(lines[2])
-            self.like = int(lines[3])
-            self.dislike = int(lines[4])
-            self.additional_comment = []
-            for i in range(5, len(lines), 2):
-                if i + 1 < len(lines):
-                    self.additional_comment.append([lines[i], lines[i + 1]])
-            return True
-        except:
-            print("reset comment error")
-            return False
-
 if __name__ == '__main__':
     db_name = "temp.db" # database name
-    wp = db(db_name)
+    wp = DB(db_name)
