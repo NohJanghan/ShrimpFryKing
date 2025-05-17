@@ -3,9 +3,9 @@ from typing import Literal
 from entity import *
 
 class DBservice():
-    def __init__(self):
-        self.newsDB = NewsDB()
-        self.userDB = UserDB()
+    def __init__(self, dbname = "news.db"):
+        self.newsDB = NewsDB(dbname)
+        self.userDB = UserDB(dbname)
 
     def get_news_list(self, order_by: Literal['recent', 'hot'], page: int = 1, page_size: int = 10) -> list["sdfs"]:
         raise NotImplementedError("This endpoint is not implemented yet.")
