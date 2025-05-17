@@ -3,9 +3,9 @@ from db.DBservice import db
 from summarizer.gemini_summary import summarize_comment
 
 
-async def get_comment_summary(news_id: int):
+async def get_comment_summary(news_id: int, user_id: str) -> str:
   try:
-    news_item = db.get_news_by_id(news_id)
+    news_item = db.get_news_by_id(news_id, user_id)
     text = news_item.comment
 
     text = await summarize_comment(text)

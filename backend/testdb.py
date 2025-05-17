@@ -39,7 +39,7 @@ try:
                         url='https://m.entertain.naver.com/home/article/396/0000709497',
                         image_url=None, category='Entertainment',
                         brief="배우 김우빈이 홍석천의 웹 예능 '홍석천의 보석함'에 출연하여 촬영을 마쳤습니다.  모델 시절부터 친분을 쌓아온 두 사람의 만남으로, 김우빈의 솔직한 모습과 홍석천과의 케미스트리가 기대됩니다.  '홍석천 픽'으로 유명한 해당 프로그램에서 김우빈이 어떤 매력을 보여줄지 많은 관심이 집중되고 있습니다.",
-                        author_id='0'))
+                        author_id='0'), '0')
 except Exception as e:
     print(e)
 try:
