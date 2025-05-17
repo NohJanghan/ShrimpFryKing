@@ -29,6 +29,8 @@ def timesubdate(time:int, subdate:int) -> int:
     return int(date.strftime("%Y%m%d%H%M%S"))
 
 def checkliked(newsdict:dict, user_id:str) -> dict:
+    if newsdict == {}:
+        return {}
     # check if user liked or disliked the news
     newsdict["Isliked"] = True if user_id in newsdict["likelist"].split(SEPERATER) else False
     newsdict["Isdisliked"] = True if user_id in newsdict["dislikelist"].split(SEPERATER) else False
@@ -44,13 +46,16 @@ class DB:
         self._exit()
     def _exit(self):
         self.conn.close()
-    def _exec(self, cmd:str):
+    def _exec(self, cmd:str, val:tuple=None):
         try:
-            self.cur.execute(cmd)
+            if val == None:
+                self.cur.execute(cmd)
+            else:
+                self.cur.execute(cmd, val)
             self.conn.commit()
         except:
-            print(cmd + "exec func error")
-            raise Exception("exec error")
+            print(cmd + "exec2 func error")
+            raise Exception("exec2 error")
     def _fetch(self) -> list:
         # list of dictioinaries
         # [{prop1 : value1, prop2 : value2}, {prop1 : value1, prop2 : value2}]
@@ -75,7 +80,7 @@ class DB:
         if len(prop) != 0:
             cmd_list = []
             for _prop, _type_option in prop.items():
-                cmd_list.append(_prop + " " + _type_option)
+                cmd_list.append("\"" + _prop + "\" " + _type_option)
                 self.attr.append(_prop)
             cmd += "(" + ", ".join(cmd_list) + ")"
         try:
@@ -89,86 +94,142 @@ class DB:
         if len(val) == 0:
             return False
         cmd = "insert into " + table_name + " values ("
-        cmd_list = []
-        for v in val:
-            cmd_list.append(str(v))
-        cmd += ", ".join(cmd_list) + ")"
+        cmd += ", ".join(["?" for _ in range(len(val))]) + ")"
         try:
-            self._exec(cmd)
+            self._exec(cmd, tuple(val))
             return True
         except:
             print("insert table exec error")
             return False
     def _find_table(self, table_name:str, where:dict, orderbydict:dict, limit = 0) -> list:
         #SELECT * FROM {table name} where {prop} {operator} {condition} and {prop} {operator} {condition} order by {prop} asc/desc {prop} asc/desc limit {num};
+        val_list = []
         cmd = "select * from " + table_name
         if len(where) != 0:
             cmd_list = []
             for _prop, _option_value in where.items():
                 _option = _option_value[0]
-                _value = _option_value[1]
-                cst = _prop + " "
-                if _option == "same":       cst += "= " + _value
-                elif _option == "under":    cst += "< " + _value
-                elif _option == "over":     cst += "> " + _value
-                elif _option == "undersame":cst += "<= " + _value
-                elif _option == "oversame": cst += ">= " + _value
-                elif _option == "notsame":  cst += "!= " + _value
-                elif _option == "is":       cst += "is " + _value #null/tf/unk
-                elif _option == "isnot":    cst += "is not " + _value #null/tf/unk
-                elif _option == "bw":       cst += "between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
-                elif _option == "notbw":    cst += "not between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
-                elif _option == "in":       cst += "in(" + ", ".join(_value) + ")"
-                elif _option == "notin":    cst += "not in(" + ", ".join(_value) + ")"
+                cst = "\"" + _prop + "\" "
+                if _option == "same":
+                    cst += "= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "under":
+                    cst += "< ?"
+                    val_list.append(_option_value[1])
+                elif _option == "over":
+                    cst += "> ?"
+                    val_list.append(_option_value[1])
+                elif _option == "undersame":
+                    cst += "<= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "oversame":
+                    cst += ">= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "notsame":
+                    cst += "!= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "is":
+                    cst += "is ?" #null/tf/unk
+                    val_list.append(_option_value[1])
+                elif _option == "isnot": 
+                    cst += "is not ?" #null/tf/unk
+                    val_list.append(_option_value[1])
+                elif _option == "bw":
+                    cst += "between ? and ?"
+                    val_list.append(_option_value[1].split(' ')[0])
+                    val_list.append(_option_value[1].split(' ')[1])
+                elif _option == "notbw":
+                    cst += "not between ? and ?"
+                    val_list.append(_option_value[1].split(' ')[0])
+                    val_list.append(_option_value[1].split(' ')[1])
+                elif _option == "in":
+                    cst += "in(" + ", ".join(["?" for _ in _option_value[1]]) + ")"
+                    for _v in _option_value[1]:
+                        val_list.append(_v)
+                elif _option == "notin":
+                    cst += "not in(" + ", ".join(["?" for _ in _option_value[1]]) + ")"
+                    for _v in _option_value[1]:
+                        val_list.append(_v)
                 else:
-                    cst += "is " + _value
+                    cst += "is ?"
+                    val_list.append(_option_value[1])
                 cmd_list.append(cst)
             cmd += " where " + " and ".join(cmd_list)
         if len(orderbydict) != 0:
             cmd_list = []
             for _prop, _option in orderbydict.items():
-                cmd_list.append(_prop + " " + _option)
+                cmd_list.append("\"" + _prop + "\" " + _option)
             cmd += " order by " + ", ".join(cmd_list)
         if limit != 0:
             cmd += " limit " + str(limit)
         try:
-            self._exec(cmd)
+            self._exec(cmd, tuple(val_list))
             return self._fetch()
         except:
             print("select where exec/fetch error")
             return []
     def _update_table(self, table_name:str, where:dict, content:dict) -> bool:
         #UPDATE {table name} set {prop} {value}, {prop} {value} where {prop} {operator} {condition} and {prop} {operator} {condition};
+        val_list = []
         cmd = "update " + table_name
         if len(content) != 0:
             cmd_list = []
-            for _prop, _option in content.items():
-                cmd_list.append(_prop + "=" + _option)
+            for _prop, _value in content.items():
+                cmd_list.append("\"" + _prop + "\" =?")
+                val_list.append(_value)
             cmd += " set " + ", ".join(cmd_list)
         if len(where) != 0:
             cmd_list = []
             for _prop, _option_value in where.items():
                 _option = _option_value[0]
-                _value = _option_value[1]
-                cst = _prop + " "
-                if _option == "same":       cst += "= " + _value
-                elif _option == "under":    cst += "< " + _value
-                elif _option == "over":     cst += "> " + _value
-                elif _option == "undersame":cst += "<= " + _value
-                elif _option == "oversame": cst += ">= " + _value
-                elif _option == "notsame":  cst += "!= " + _value
-                elif _option == "is":       cst += "is " + _value #null/tf/unk
-                elif _option == "isnot":    cst += "is not " + _value #null/tf/unk
-                elif _option == "bw":       cst += "between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
-                elif _option == "notbw":    cst += "not between " + _value.split(' ')[0] + " and " + _value.split(' ')[1]
-                elif _option == "in":       cst += "in(" + ", ".join(_value) + ")"
-                elif _option == "notin":    cst += "not in(" + ", ".join(_value) + ")"
+                cst = "\"" + _prop + "\" "
+                if _option == "same":
+                    cst += "= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "under":
+                    cst += "< ?"
+                    val_list.append(_option_value[1])
+                elif _option == "over":
+                    cst += "> ?"
+                    val_list.append(_option_value[1])
+                elif _option == "undersame":
+                    cst += "<= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "oversame":
+                    cst += ">= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "notsame":
+                    cst += "!= ?"
+                    val_list.append(_option_value[1])
+                elif _option == "is":
+                    cst += "is ?" #null/tf/unk
+                    val_list.append(_option_value[1])
+                elif _option == "isnot": 
+                    cst += "is not ?" #null/tf/unk
+                    val_list.append(_option_value[1])
+                elif _option == "bw":
+                    cst += "between ? and ?"
+                    val_list.append(_option_value[1].split(' ')[0])
+                    val_list.append(_option_value[1].split(' ')[1])
+                elif _option == "notbw":
+                    cst += "not between ? and ?"
+                    val_list.append(_option_value[1].split(' ')[0])
+                    val_list.append(_option_value[1].split(' ')[1])
+                elif _option == "in":
+                    cst += "in(" + ", ".join(["?" for _ in _option_value[1]]) + ")"
+                    for _v in _option_value[1]:
+                        val_list.append(_v)
+                elif _option == "notin":
+                    cst += "not in(" + ", ".join(["?" for _ in _option_value[1]]) + ")"
+                    for _v in _option_value[1]:
+                        val_list.append(_v)
                 else:
-                    cst += "is " + _value
+                    cst += "is ?"
+                    val_list.append(_option_value[1])
                 cmd_list.append(cst)
             cmd += " where " + " and ".join(cmd_list)
         try:
-            self._exec(cmd)
+            self._exec(cmd, val_list)
             return True
         except:
             print("update where exec error")

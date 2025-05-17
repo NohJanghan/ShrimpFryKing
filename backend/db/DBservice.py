@@ -4,31 +4,37 @@ from typing import Literal
 from db.entity import *
 
 def get_news_from_dict(newsdict: dict, user_id:str) -> NewsItem:
-    comment = []
-    for i, _comment in enumerate(newsdict["comment"].split(overSEPERATER)):
-        comment_item = CommentItem()
-        comment_item.reset_using_string(_comment, user_id)
-        comment_item.news_id = newsdict["news_id"]
-        comment_item.comment_index = i
-        comment.append(comment_item)
-    news = NewsItem(
-        news_id = newsdict["news_id"],
-        title = newsdict["title"],
-        content = newsdict["content"],
-        url = newsdict["url"],
-        image_url = newsdict["image_url"],
-        category = newsdict["category"],
-        brief = newsdict["brief"],
-        author_id = newsdict["author_id"],
-        date = newsdict["date"],
-        like = newsdict["like"],
-        dislike = newsdict["dislike"],
-        opinion = newsdict["opinion"],
-        comment = comment,
-        Isliked = newsdict["Isliked"],
-        Isdisliked = newsdict["Isdisliked"]
-    )
-    return news
+    try:
+        comment = []
+        for i, _comment in enumerate(newsdict["comment"].split(overSEPERATER)):
+            if _comment == "":
+                continue
+            comment_item = CommentItem()
+            comment_item.reset_using_string(_comment, user_id)
+            comment_item.news_id = newsdict["news_id"]
+            comment_item.comment_index = i
+            comment.append(comment_item)
+        news = NewsItem(
+            news_id = newsdict["news_id"],
+            title= newsdict["title"],
+            content = newsdict["content"],
+            url = newsdict["URL"],
+            image_url = newsdict["imageURL"],
+            category = newsdict["category"],
+            brief = newsdict["brief"],
+            author_id = newsdict["author_id"],
+            date = newsdict["date"],
+            like = newsdict["like"],
+            dislike = newsdict["dislike"],
+            opinion = newsdict["opinion"],
+            comment = comment,
+            Isliked = newsdict["Isliked"],
+            Isdisliked = newsdict["Isdisliked"]
+        )
+        return news
+    except Exception as e:
+        print(e)
+        raise Exception("Error occurred while getting news from dict")
 
 class DBservice():
     def __init__(self, dbname = "agora.db"):
@@ -97,8 +103,6 @@ class DBservice():
 
     def create_news(self, data: CreateNewsItem, user_id: str = "") -> None:
         try:
-            print(self.is_user_exist(user_id))
-            ############# TEST CODE #############
             if not self.is_user_exist(user_id):
                 raise Exception("User not found")
             if data.author_id != user_id:
@@ -124,7 +128,7 @@ class DBservice():
             data = data.replace()
             if data.parent_id is None:
                 newscomment = news.comment
-                newscomment.append(CommentItem(data.author_id, data.content))
+                newscomment.append(CommentItem(news.news_id, data.author_id, data.content, data.posneg))
                 ret = self.newsDB.update_news(data.news_id, comment=newscomment)
                 if not ret:
                     raise Exception("Failed to update news with new comment")
@@ -192,4 +196,4 @@ class DBservice():
     # def delete_comment(self, id):
     #     raise NotImplementedError("This endpoint is not implemented yet.")
 
-db = DBservice("agora.db")
+# db = DBservice("agora.db")

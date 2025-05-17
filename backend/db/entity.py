@@ -45,13 +45,17 @@ seperater_map = {
 }
 
 def seperaterRUN(data: str) -> str:
+    """
     for c, spt in seperater_map.items():
         data = data.replace(c, spt)
+    """
     return data
 
 def seperaterUNRUN(data: str) -> str:
+    """
     for spt, c in seperater_map.items():
         data = data.replace(spt, c)
+    """
     return data
 
 @dataclass
@@ -70,35 +74,55 @@ class CreateNewsItem:
         self.brief = seperaterRUN(self.brief)
         return self
 
-@dataclass
 class CreateCommentItem:
     content: str
     news_id: int
-    author_id: int
+    author_id: str
+    posneg: int # 0 : neutral, 1 : pos, -1 : neg
     parent_id: int | None= None # int이면 additional Comment
-
+    def __init__(self, content:str="", news_id:int=0, author_id:str="", posneg:int=0, parent_id:int | None = None):
+        self.content = content
+        self.news_id = news_id
+        self.author_id = author_id
+        self.posneg = posneg
+        self.parent_id = parent_id
     def replace(self):
         self.content = seperaterRUN(self.content)
         return self
 
-@dataclass
 class NewsItem:
-    news_id: int
-    title: str
-    content: str
-    url: str
-    image_url: str
-    category: str
-    brief: str
-    author_id: str
-    date: int
-    like: int
-    dislike: int
-    opinion: int
-    comment: list['CommentItem'] # list of CommentItem
-    Isliked: bool
-    Isdisliked: bool
-
+    # news_id: int
+    # title: str
+    # content: str
+    # url: str
+    # image_url: str
+    # category: str
+    # brief: str
+    # author_id: str
+    # date: int
+    # like: int
+    # dislike: int
+    # opinion: int
+    # comment: list['CommentItem'] # list of CommentItem
+    # Isliked: bool
+    # Isdisliked: bool
+    def __init__(self, news_id:int=0, title:str="", content:str="", url:str="", image_url:str="", category:str="", brief:str="", author_id:str="", date:int=0, like:int=0, dislike:int=0, opinion:int=0, comment:list['CommentItem']=[], Isliked:bool=False, Isdisliked:bool=False):
+        print(123123)
+        self.news_id = news_id
+        self.title = title
+        self.content = content
+        self.url = url
+        self.image_url = image_url
+        self.category = category
+        self.brief = brief
+        self.author_id = author_id
+        self.date = date
+        self.like = like
+        self.dislike = dislike
+        self.opinion = opinion
+        self.comment = comment
+        self.Isliked = Isliked
+        self.Isdisliked = Isdisliked
     def replace(self):
         self.title = seperaterUNRUN(self.title)
         self.content = seperaterUNRUN(self.content)
@@ -118,10 +142,11 @@ class CommentItem:
     Isliked: bool
     # parent_id가 None이 아니면 []
 
-    def __init__(self, id:str, content:str):
+    def __init__(self, id:str="", content:str="", posneg:int=0):
+        self.news_id = 0
         self.author_id = id
         self.content = content
-        self.posneg = 0
+        self.posneg = posneg
         self.like = 0
         self.additional_comment = []
         self.Isliked = False
@@ -137,7 +162,7 @@ class CommentItem:
             return False
     def get_string(self) -> str:
         # return comment string
-        ret = self.author_id + SEPERATER + self.content + SEPERATER + str(self.posneg) + SEPERATER + str(self.like) + SEPERATER + str(innerSEPERATER.join(self.likelist)) + SEPERATER
+        ret = self.news_id + SEPERATER + self.author_id + SEPERATER + self.content + SEPERATER + str(self.posneg) + SEPERATER + str(self.like) + SEPERATER + str(innerSEPERATER.join(self.likelist)) + SEPERATER
         for c in self.additional_comment:
             ret += c[0] + SEPERATER + c[1] + SEPERATER
         return ret
@@ -145,14 +170,15 @@ class CommentItem:
         # reset comment using string
         try:
             lines = string.split(SEPERATER)
-            self.author_id = lines[0]
-            self.content = lines[1]
-            self.posneg = int(lines[2])
-            self.like = int(lines[3])
-            self.likelist = lines[4].split(innerSEPERATER)
+            self.news_id = int(lines[0])
+            self.author_id = lines[1]
+            self.content = lines[2]
+            self.posneg = int(lines[3])
+            self.like = int(lines[4])
+            self.likelist = lines[5].split(innerSEPERATER)
             self.Isliked = user_id in self.likelist
             self.additional_comment = []
-            for i in range(5, len(lines), 2):
+            for i in range(6, len(lines), 2):
                 if i + 1 < len(lines):
                     self.additional_comment.append([lines[i], lines[i + 1]])
             return True
