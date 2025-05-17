@@ -106,8 +106,10 @@ class DBservice():
 
     def create_news(self, data: CreateNewsItem) -> None:
         try:
-            if not self.is_user_exist(data.author_id):
-                raise Exception("User not found")
+            # author_id가 '0' 또는 ''이면 유저 체크를 건너뜀
+            if data.author_id not in ['0', '', None]:
+                if not self.is_user_exist(data.author_id):
+                    raise Exception("User not found")
             data = data.replace()
             self.newsDB.insert_news(data.title, data.content, data.brief, data.url, data.image_url, data.category, data.author_id)
         except Exception as e:
@@ -193,6 +195,7 @@ class DBservice():
 
     def update_news(self, news_id, likes: int | None = None, dislikes: int | None = None, user_id: str = ""):
         try:
+            user_id = str(user_id)  # 항상 문자열로 변환
             if not self.is_user_exist(user_id):
                 raise Exception("User not found")
             news = self.newsDB.get_news(news_id, user_id)

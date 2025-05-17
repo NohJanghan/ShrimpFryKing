@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 
-const ALLOWED_NEWS_KEYWORDS = [
-  'tvchosun', 'mbc', 'jtbc', 'channela', 'sbs', 'yna', 'newsis', 'kbs', 'mbn', 'ytn'
-];
+// const ALLOWED_NEWS_KEYWORDS = [
+//   'tvchosun', 'mbc', 'jtbc', 'channela', 'sbs', 'yna', 'newsis', 'kbs', 'mbn', 'ytn'
+// ];
 
-function WritePage({ user, setPage }) {
+function WritePage({ user, setPage, fetchArticles }) {
   const [site, setSite] = useState('');
   const [topic, setTopic] = useState('');
   const [warning, setWarning] = useState('');
   const isValid = site.trim() !== '' && topic !== '';
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
       setWarning('로그인 후 작성이 가능합니다');
@@ -20,15 +20,37 @@ function WritePage({ user, setPage }) {
       }, 1000);
       return;
     }
-    const siteLower = site.toLowerCase();
-    const isAllowed = ALLOWED_NEWS_KEYWORDS.some(keyword => siteLower.includes(keyword));
-    if (!isAllowed) {
-      setWarning('뉴스를 등록할 수 없습니다');
-      setTimeout(() => setWarning(''), 5000);
-      return;
+    // const siteLower = site.toLowerCase();
+    // const isAllowed = ALLOWED_NEWS_KEYWORDS.some(keyword => siteLower.includes(keyword));
+    // if (!isAllowed) {
+    //   setWarning('뉴스를 등록할 수 없습니다');
+    //   setTimeout(() => setWarning(''), 5000);
+    //   return;
+    // }
+    try {
+      const BASE_URL = 'http://localhost:8000';
+      const authorId = user && user.id ? user.id : '0';
+      const query = `news_url=${encodeURIComponent(site)}&author_id=${encodeURIComponent(authorId)}`;
+      const res = await fetch(`${BASE_URL}/news?${query}`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setWarning('뉴스가 등록되었습니다!');
+        setTimeout(async () => {
+          setWarning('');
+          if (fetchArticles) await fetchArticles();
+          setPage && setPage('main');
+        }, 1000);
+      } else {
+        const data = await res.json();
+        setWarning(data.detail || '등록에 실패했습니다');
+        if (data.detail) {
+          console.error('뉴스 등록 에러:', data.detail);
+        }
+      }
+    } catch (e) {
+      setWarning('서버 오류로 등록에 실패했습니다');
     }
-    alert('뉴스가 등록되었습니다!');
-    // 실제 등록 로직 추가 가능
   };
 
   return (
@@ -112,6 +134,7 @@ function WritePage({ user, setPage }) {
               <option value="정치">정치</option>
               <option value="경제">경제</option>
               <option value="과학">과학</option>
+              <option value="기타">기타</option>
             </select>
           </div>
           {/* 등록 버튼 */}

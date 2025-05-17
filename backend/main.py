@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Replace with your frontend URL
+    allow_origins=["*"],  # 개발 시 전체 허용, 배포 시 도메인 제한 권장
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

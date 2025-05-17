@@ -32,9 +32,10 @@ def checkliked(newsdict:dict, user_id:str) -> dict:
     if newsdict == {}:
         return {}
     # check if user liked or disliked the news
-    print(newsdict["likelist"].split(SEPERATER))
-    newsdict["Isliked"] = True if user_id in newsdict["likelist"].split(SEPERATER) else False
-    newsdict["Isdisliked"] = True if user_id in newsdict["dislikelist"].split(SEPERATER) else False
+    likelist = list(filter(lambda x: x != '', newsdict["likelist"].split(SEPERATER)))
+    dislikelist = list(filter(lambda x: x != '', newsdict["dislikelist"].split(SEPERATER)))
+    newsdict["Isliked"] = True if user_id in likelist else False
+    newsdict["Isdisliked"] = True if user_id in dislikelist else False
     return newsdict
 
 class DB:
