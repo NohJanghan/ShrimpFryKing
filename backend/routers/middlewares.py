@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from services.user_service import session_store
 
-async def auth_middleware(request: Request, response: Response):
+def auth_middleware(request: Request, response: Response):
     """
     사용자 인증을 확인하는 미들웨어
     세션 ID로부터 사용자 ID를 확인하고 인증되지 않은 사용자는 401 에러를 반환합니다.

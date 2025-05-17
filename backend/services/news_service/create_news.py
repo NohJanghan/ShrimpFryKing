@@ -8,7 +8,7 @@ from db.entity import CreateNewsItem
 from utils.article import get_first_image_url
 
 
-async def create_news(news_url: str):
+async def create_news(news_url: str, user_id: str) -> bool:
     try:
         article = extract_articles_from_url(news_url)
         print(f"[INFO] Extracted article - article: {article}")
@@ -30,7 +30,7 @@ async def create_news(news_url: str):
             image_url=image_url,
             category=category,
             brief=brief,
-            author_id="0",  # Placeholder for author ID
+            author_id=user_id,
         )
         # print(f"[INFO] Inserting news into DB - Title: {title}, URL: {news_url}")
         db.create_news(data)

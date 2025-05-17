@@ -28,5 +28,6 @@ async def get_news_by_id_handler(news_id: int, request: Request, response: Respo
     return await get_news_by_id(news_id, user_id)
 
 @router.post("/", response_model=bool)
-async def create_news_handler(news_url: str):
-    return await create_news(news_url)
+async def create_news_handler(news_url: str, response: Response, request: Request):
+    user_id = auth_middleware(request, response)
+    return await create_news(news_url, user_id)
