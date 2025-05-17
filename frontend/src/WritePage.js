@@ -1,14 +1,34 @@
 import React, { useState } from 'react';
 
-function WritePage() {
-  const [author, setAuthor] = useState('');
+const ALLOWED_NEWS_KEYWORDS = [
+  'tvchosun', 'mbc', 'jtbc', 'channela', 'sbs', 'yna', 'newsis', 'kbs', 'mbn', 'ytn'
+];
+
+function WritePage({ user, setPage }) {
   const [site, setSite] = useState('');
   const [topic, setTopic] = useState('');
-  const isValid = author.trim() !== '' && site.trim() !== '' && topic !== '';
+  const [warning, setWarning] = useState('');
+  const isValid = site.trim() !== '' && topic !== '';
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!user) {
+      setWarning('로그인 후 작성이 가능합니다');
+      setTimeout(() => {
+        setWarning('');
+        setPage && setPage('login');
+      }, 1000);
+      return;
+    }
+    const siteLower = site.toLowerCase();
+    const isAllowed = ALLOWED_NEWS_KEYWORDS.some(keyword => siteLower.includes(keyword));
+    if (!isAllowed) {
+      setWarning('뉴스를 등록할 수 없습니다');
+      setTimeout(() => setWarning(''), 5000);
+      return;
+    }
     alert('뉴스가 등록되었습니다!');
+    // 실제 등록 로직 추가 가능
   };
 
   return (
@@ -19,11 +39,11 @@ function WritePage() {
       <div
         className="news-card"
         style={{
-          background: '#ede9fe', // 보라색
+          background: '#ede9fe',
           borderRadius: '1.5rem',
           boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)',
           maxWidth: 800,
-          minHeight: 900,
+          minHeight: 800,
           margin: '0 auto',
           padding: '3.5rem 2rem',
           display: 'flex',
@@ -32,35 +52,6 @@ function WritePage() {
         }}
       >
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-          {/* 작성자 이름 */}
-          <div className="mb-8">
-            <div 
-            style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 600, 
-                color: '#374151', 
-                marginBottom: '1rem', 
-                textAlign: 'left' 
-            }}
-            >
-                작성자 이름
-            </div>
-            <input
-              type="text"
-              placeholder="이름을 적어주세요"
-              style={{
-                width: '90%',
-                padding: '0.75rem 0.75rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #d1d5db',
-                fontSize: '1.2rem',
-                outline: 'none',
-                marginBottom: '2rem',
-              }}
-              value={author}
-              onChange={e => setAuthor(e.target.value)}
-            />
-          </div>
           {/* 뉴스 사이트 */}
           <div className="mb-8">
             <div 
@@ -145,6 +136,24 @@ function WritePage() {
           </button>
         </form>
         {/* 경고문구 */}
+        {warning && (
+          <div
+            style={{
+              width: '90%',
+              background: '#fef9c3',
+              borderLeft: '4px solid #f59e42',
+              color: '#b45309',
+              padding: '1.25rem',
+              fontSize: '1.2rem',
+              borderRadius: '0.5rem',
+              lineHeight: 1.6,
+              marginTop: '0.5rem',
+              textAlign: 'left',
+            }}
+          >
+            {warning}
+          </div>
+        )}
         <div
             style={{
                 width: '90%',

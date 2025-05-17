@@ -1,10 +1,23 @@
-from crawling.article_extractor import extract_articles_from_url
-from summarizer.gemini_summary import summarize_article
+# app.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers.news_router import router as news_router
 
-url = 'https://n.news.naver.com/article/584/0000032393?cds=news_media_pc&type=editn'
+app = FastAPI()
 
-articles = extract_articles_from_url(url)
+# CORS 설정 (프론트랑 연동 시 필요, 지금은 테스트용으로 * 허용)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 또는 ["http://localhost:3000"] 등
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-summary = summarize_article(articles)
+# 라우터 등록
+app.include_router(news_router)
 
-print(summary)
+# 헬스체크용 루트 엔드포인트
+@app.get("/")
+def root():
+    return {"message": "News API is running!"}
