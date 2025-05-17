@@ -107,7 +107,6 @@ class NewsItem:
     # Isliked: bool
     # Isdisliked: bool
     def __init__(self, news_id:int=0, title:str="", content:str="", url:str="", image_url:str="", category:str="", brief:str="", author_id:str="", date:int=0, like:int=0, dislike:int=0, opinion:int=0, comment:list['CommentItem']=[], Isliked:bool=False, Isdisliked:bool=False):
-        print(123123)
         self.news_id = news_id
         self.title = title
         self.content = content

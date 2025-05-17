@@ -357,9 +357,9 @@ class NewsDB(DB):
             print("find title error")
             return {}
 
-    def recent_news(self, num:int) -> list:
+    def recent_news(self, num:int, user_id:str) -> list:
         try:
-            return list(map(checkliked, self._find_table(self.table_name, {}, {"date" : "desc"}, num)))
+            return list(map(lambda x : checkliked(x, user_id), self._find_table(self.table_name, {}, {"date" : "desc"}, num)))
         except:
             print("recent news error")
             return []
@@ -368,14 +368,14 @@ class NewsDB(DB):
         # subdate : recent days (default 14)
         # num : number of news
         try:
-            return list(map(checkliked, self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime, subdate)]}, {"opinion" : "desc"}, num)))
+            return list(map(lambda x : checkliked(x , user_id), self._find_table(self.table_name, {"date" : ["over", timesubdate(nowtime, subdate)]}, {"opinion" : "desc"}, num)))
         except:
             print("hot news error")
             return ""
 
     def category_news(self, category:str, num:int) -> list:
         try:
-            return list(map(checkliked, self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)))
+            return list(map(lambda x: checkliked(x, user_id), self._find_table(self.table_name, {"category" : ["same", category]}, {"date" : "desc"}, num)))
         except:
             print("category news error")
             return ""

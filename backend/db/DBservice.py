@@ -189,11 +189,12 @@ class DBservice():
         except:
             raise Exception("Error occurred while updating comment")
 
-    def update_news(self, id, likes: int | None = None, dislikes: int | None = None, user_id: str = ""):
+    def update_news(self, news_id, likes: int | None = None, dislikes: int | None = None, user_id: str = ""):
+        
 
         raise NotImplementedError("This endpoint is not implemented yet.")
 
     # def delete_comment(self, id):
     #     raise NotImplementedError("This endpoint is not implemented yet.")
 
-# db = DBservice("agora.db")
+db = DBservice("agora.db")
