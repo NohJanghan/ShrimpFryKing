@@ -11,7 +11,7 @@ async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest):
     data = CreateCommentItem()
     data.content = comment.content
     data.news_id = news_id
-    data.author_id = int(comment.author_id)
+    data.author_id = comment.author_id
     data.parent_id = None
 
     news_item = get_news_by_id(news_id)
@@ -26,7 +26,7 @@ async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest):
     if risk == "High Risk":
       return False
 
-    db.create_comment(data, user_id=comment.author_id)
+    db.create_comment(data)
     return True
 
   except Exception as e:
