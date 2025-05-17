@@ -9,7 +9,7 @@ import sqlite3 as sql3
 import pandas as pd
 import numpy as np
 import datetime
-from poco_data import *
+from entity import *
 # for isnan checking
 
 def splitjoin(string, spl_list, change):
@@ -220,10 +220,10 @@ class NewsDB(DB):
         super().__init__(dbname)
         self.table_name = "news"
         self.news_id = 0
-        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int", "category" : "text", "id" : "text", "comment" : "text"})
-        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int) / category (text) / id (text) / comment (text)
+        self._make_table(self.table_name, {"news_id" : "int", "title" : "text", "content" : "text", "brief" : "text", "URL" : "text", "imageURL" : "text", "date" : "int", "like" : "int", "dislike" : "int", "opinion" : "int", "category" : "text", "author_id" : "text", "comment" : "text"})
+        # title (text) / content (text) / brief (text) / URL (text) / imageURL (text) / date (int, yyyymmddhhmmss) / like (int) / dislike (int) / opinion (int) / category (text) / author_id (text) / comment (text)
 
-    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, id:str) -> bool:
+    def insert_news(self, title:str, content:str, brief:str, URL:str, imageURL:str, category:str, author_id:str) -> bool:
         # True : insert success
         # False : insert failed
         try:
@@ -232,11 +232,11 @@ class NewsDB(DB):
                 return False
             news_id = self.news_id + 1
             date = nowtime()
-            good = 0
-            bad = 0
+            like = 0
+            dislike = 0
             opinion = 0
             comment = ""
-            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, good, bad, opinion, category, id, comment])
+            self._insert_table(self.table_name, [news_id, title, content, brief, URL, imageURL, date, like, dislike, opinion, category, author_id, comment])
             self.news_id = news_id
             return True
         except:
@@ -247,7 +247,7 @@ class NewsDB(DB):
         # True : update success
         # False : update failed
         # comment : list of comment
-        # comment = Commentdata()
+        # comment = CommentItem()
         try:
             if self.get_news(news_id) == {}:
                 print("news not found")
