@@ -5,8 +5,6 @@ async def post_comment_like(news_id, comment_i, user_id):
   try:
     news_item = db.get_news_by_id(news_id, user_id=user_id)
     comment_item = news_item.comment[comment_i]
-    
-    print(123123)
 
     if comment_item is None:
       raise HTTPException(status_code=404, detail="Comment not found")
