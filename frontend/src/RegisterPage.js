@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import './App.css';
 
 // 더미 아이디 데이터
-// const DUMMY_IDS = ['testuser', 'admin', 'guest'];
+const DUMMY_IDS = ['testuser', 'admin', 'guest'];
 const INVALID_PATTERN = /[|,\s]/;
 
-function RegisterPage({ setUser, setPage }) {
+function RegisterPage({ setPage }) {
   const [id, setId] = useState('');
   const [idChecked, setIdChecked] = useState(false);
   const [idAvailable, setIdAvailable] = useState(null); // null | true | false
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [alertMsg, setAlertMsg] = useState('');
-  const BASE_URL = 'http://localhost:8000';
 
   // 입력값에 금지문자 포함 여부
   const idInvalid = INVALID_PATTERN.test(id);
@@ -22,46 +21,25 @@ function RegisterPage({ setUser, setPage }) {
   // id, username, password 모두 입력 & id 중복확인 통과 & 금지문자 없을 때만 submit 가능
   const isValid = idChecked && idAvailable && username.trim() !== '' && password.trim() !== '' && !idInvalid && !usernameInvalid && !passwordInvalid;
 
-  const handleIdCheck = async () => {
+  const handleIdCheck = () => {
     if (!id.trim() || idInvalid) return;
-    try {
-      const query = `id=${encodeURIComponent(id)}`;
-      const res = await fetch(`${BASE_URL}/user/check_id?${query}`);
-      if (res.ok) {
-        const data = await res.json();
-        setIdAvailable(data.available);
-        setIdChecked(true);
-      } else {
-        setIdAvailable(false);
-        setIdChecked(true);
-      }
-    } catch (e) {
+    // 더미 데이터로 중복확인
+    if (DUMMY_IDS.includes(id.trim().toLowerCase())) {
       setIdAvailable(false);
+      setIdChecked(true);
+    } else {
+      setIdAvailable(true);
       setIdChecked(true);
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setAlertMsg('');
-    try {
-      const query = `id=${encodeURIComponent(id)}&password=${encodeURIComponent(password)}&user_name=${encodeURIComponent(username)}`;
-      const res = await fetch(`${BASE_URL}/user/register?${query}`, {
-        method: 'POST'
-      });
-      if (res.ok) {
-        setUser({ id, username });
-        setAlertMsg('회원가입이 완료되었습니다!');
-        setTimeout(() => {
-          setAlertMsg('');
-          setPage && setPage('main');
-        }, 1000);
-      } else {
-        setAlertMsg('회원가입 실패: 이미 존재하는 아이디이거나 서버 오류');
-      }
-    } catch (e) {
-      setAlertMsg('서버 오류로 회원가입에 실패했습니다');
-    }
+    setAlertMsg('회원가입이 완료되었습니다');
+    setTimeout(() => {
+      setAlertMsg('');
+      setPage && setPage('login');
+    }, 1000);
   };
 
   return (

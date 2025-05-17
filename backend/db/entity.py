@@ -134,23 +134,19 @@ class NewsItem:
         return self
     def setlike(self, like:bool, user_id:str):
         if like == True:
-            if user_id not in self.likelist:
-                self.like += 1
-                self.likelist.append(user_id)
+            self.like += 1
+            self.likelist.append(user_id)
         else:
-            if user_id in self.likelist:
-                self.like -= 1
-                self.likelist.remove(user_id)
+            self.like -= 1
+            self.likelist.remove(user_id)
         self.Isliked = like
     def setdislike(self, dislike:bool, user_id:str):
         if dislike == True:
-            if user_id not in self.dislikelist:
-                self.dislike += 1
-                self.dislikelist.append(user_id)
+            self.dislike += 1
+            self.dislikelist.append(user_id)
         else:
-            if user_id in self.dislikelist:
-                self.dislike -= 1
-                self.dislikelist.remove(user_id)
+            self.dislike -= 1
+            self.dislikelist.remove(user_id)
         self.Isdisliked = dislike
 
 class CommentItem:
@@ -217,21 +213,9 @@ class CommentItem:
         return self.Isliked
     def setlike(self, like:bool, user_id:str):
         if like == True:
-            if user_id not in self.likelist:
-                self.like += 1
-                self.likelist.append(user_id)
+            self.like += 1
+            self.likelist.append(user_id)
         else:
-            if user_id in self.likelist:
-                self.like -= 1
-                self.likelist.remove(user_id)
+            self.like -= 1
+            self.likelist.remove(user_id)
         self.Isliked = like
-    def setdislike(self, dislike:bool, user_id:str):
-        if dislike == True:
-            if user_id not in self.dislikelist:
-                self.dislike += 1
-                self.dislikelist.append(user_id)
-        else:
-            if user_id in self.dislikelist:
-                self.dislike -= 1
-                self.dislikelist.remove(user_id)
-        self.Isdisliked = dislike

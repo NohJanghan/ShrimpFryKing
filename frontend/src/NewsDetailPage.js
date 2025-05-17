@@ -1,25 +1,9 @@
 import React from 'react';
 import CommentSection from './CommentSection';
 
-function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage }) {
-  const [like, setLike] = React.useState(news.like ?? 0);
-  const [dislike, setDislike] = React.useState(news.dislike ?? 0);
-  const [loading, setLoading] = React.useState(false);
-  const [imgError, setImgError] = React.useState(false);
-
-  React.useEffect(() => {
-    setLike(news.like ?? 0);
-    setDislike(news.dislike ?? 0);
-    setImgError(false);
-  }, [news]);
-
+function NewsDetailPage({ news }) {
+    
   if (!news) return <div>뉴스 정보가 없습니다.</div>;
-
-  // 찬성/반대/요약 prop 준비
-  const agreeCount = like;
-  const disagreeCount = dislike;
-  const agreeSummaryList = news.agreeSummaryList ?? ["아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다"];
-  const disagreeSummaryList = news.disagreeSummaryList ?? ["아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다"];
 
   return (
     <div style={{ 
@@ -36,82 +20,19 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
         background: '#fff', 
         minWidth: 0 }}>
         <div style={{ padding: '2rem' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'left' }}>{news.title}</h2>
+          <h2 style={{ fontSize: '2rem', fontWeight: 700 }}>{news.title}</h2>
           <img
-            src={imgError ? undefined : (news.image_url || news.imageURL)}
+            src={news.imageURL}
             alt="뉴스 이미지"
-            style={{ width: '100%', margin: '2rem 0', borderRadius: '1rem', minHeight: 180, background: '#f3f4f6', objectFit: 'cover', display: imgError ? 'none' : 'block' }}
-            onError={() => setImgError(true)}
+            style={{ width: '100%', margin: '2rem 0', borderRadius: '1rem' }}
           />
-          {imgError && (
-            <div style={{ width: '100%', height: 180, background: '#444', borderRadius: '1rem', margin: '2rem 0' }} />
-          )}
-          <p style={{fontSize: '1.5rem', whiteSpace: 'pre-line', textAlign: 'left' }}>{news.content}</p>
+          <p style={{fontSize: '1.5rem' }}>{news.brief}</p>
         </div>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', background: '#f3f4f6'}}>
         <div style={{ padding: '2rem' }}>
-          <CommentSection
-            agreeCount={like}
-            disagreeCount={dislike}
-            agreeSummaryList={agreeSummaryList}
-            disagreeSummaryList={disagreeSummaryList}
-            user={user}
-            newsId={news.id || news.news_id}
-            onVoteAgree={async () => {
-              if (!user) {
-                alert('로그인이 필요합니다.');
-                setPage && setPage('login');
-                return;
-              }
-              const newsId = news.id || news.news_id;
-              if (!newsId) return;
-              setLoading(true);
-              try {
-                await fetch(`/news/${newsId}/like`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user_id: user.id, action: 1 }),
-                });
-                const res = await fetch(`/news/${newsId}`);
-                const detail = await res.json();
-                setLike(detail.like ?? detail.likes ?? like);
-                setDislike(detail.dislike ?? detail.dislikes ?? dislike);
-                if (detail && detail.title) setSelectedNews && setSelectedNews(detail);
-                fetchArticles && fetchArticles();
-              } catch (e) {
-                alert('좋아요 처리 중 오류가 발생했습니다.');
-              }
-              setLoading(false);
-            }}
-            onVoteDisagree={async () => {
-              if (!user) {
-                alert('로그인이 필요합니다.');
-                setPage && setPage('login');
-                return;
-              }
-              const newsId = news.id || news.news_id;
-              if (!newsId) return;
-              setLoading(true);
-              try {
-                await fetch(`/news/${newsId}/dislike`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user_id: user.id, action: 1 }),
-                });
-                const res = await fetch(`/news/${newsId}`);
-                const detail = await res.json();
-                setLike(detail.like ?? detail.likes ?? like);
-                setDislike(detail.dislike ?? detail.dislikes ?? dislike);
-                if (detail && detail.title) setSelectedNews && setSelectedNews(detail);
-                fetchArticles && fetchArticles();
-              } catch (e) {
-                alert('싫어요 처리 중 오류가 발생했습니다.');
-              }
-              setLoading(false);
-            }}
-            setPage={setPage}
-          />
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600 }}>댓글</h3>
+            <CommentSection />
         </div>
       </div>
     </div>

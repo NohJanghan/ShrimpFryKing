@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import logo from './logo_with_name.png';
 import thumbUpImg from './Good_hand.png';
@@ -11,15 +11,8 @@ import RegisterPage from './RegisterPage';
 function App() {
   const [page, setPage] = useState('main');
   const [showThemeMenu, setShowThemeMenu] = useState(false);
-  const [themePage, setThemePage] = useState(null); // '정치', '과학', '경제', '기타'
+  const [themePage, setThemePage] = useState(null); // '정치', '과학', '경제'
   const [popularArticles, setPopularArticles] = useState([]);
-  const [latestArticles, setLatestArticles] = useState([]);
-  const [themeArticles, setThemeArticles] = useState({
-    'Politics': [],
-    'Science/Tech': [],
-    'Economy': [],
-    'Etc': [],
-  });
   const [selectedNews, setSelectedNews] = useState(null);
   const [currentPopularPage, setCurrentPopularPage] = useState(1);
   const [currentLatestPage, setCurrentLatestPage] = useState(1);
@@ -28,14 +21,13 @@ function App() {
   const [user, setUser] = useState(null); // 로그인 유저 정보 (null이면 비로그인)
 
   // 주제별 기사 (항상 상태 선언 이후에 위치)
-  const politicsArticles = themeArticles['Politics'];
-  const scienceArticles = themeArticles['Science/Tech'];
-  const economyArticles = themeArticles['Economy'];
-  const etcArticles = themeArticles['Etc'];
+  const politicsArticles = popularArticles.filter(a => a.category === '정치');
+  const scienceArticles = popularArticles.filter(a => a.category === '과학');
+  const economyArticles = popularArticles.filter(a => a.category === '경제');
 
   // 드롭다운 외부 클릭 시 닫힘 처리
   const themeMenuRef = React.useRef();
-  useEffect(() => {
+  React.useEffect(() => {
     if (!showThemeMenu) return;
     function handleClickOutside(e) {
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target)) {
@@ -46,108 +38,63 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showThemeMenu]);
 
-  // fetchArticles를 외부로 분리
-  const fetchArticles = async () => {
-    try {
-      // 인기순
-      const hotRes = await fetch('/news?order_by=hot&page=1&page_size=100');
-      const hotResClone = hotRes.clone();
-      let hotList = [];
-      try {
-        hotList = await hotRes.json();
-      } catch (err) {
-        const text = await hotResClone.text();
-        console.error('인기 뉴스 응답(JSON 파싱 실패):', err, text);
-        alert('인기 뉴스 응답이 JSON이 아닙니다. 서버 상태를 확인하세요.');
-        return;
-      }
-      console.log('인기 뉴스 데이터:', hotList);
-
-      // 최신순
-      const recentRes = await fetch('/news?order_by=recent&page=1&page_size=100');
-      const recentResClone = recentRes.clone();
-      let recentList = [];
-      try {
-        recentList = await recentRes.json();
-      } catch (err) {
-        const text = await recentResClone.text();
-        console.error('최신 뉴스 응답(JSON 파싱 실패):', err, text);
-        alert('최신 뉴스 응답이 JSON이 아닙니다. 서버 상태를 확인하세요.');
-        return;
-      }
-      console.log('최신 뉴스 데이터:', recentList);
-
-      // hotList와 recentList를 모두 fetch한 후에 setPopularArticles 호출
-      setPopularArticles(hotList.length > 0 ? hotList : recentList);
-      setLatestArticles(recentList);
-
-      // 주제별 분류 (인기+최신 뉴스 모두 포함, 중복 id 방지)
-      const themeMap = { 'Politics': [], 'Science/Tech': [], 'Economy': [], 'Etc': [] };
-      const categoryMap = {
-        '정치': 'Politics',
-        '과학': 'Science/Tech',
-        '경제': 'Economy',
-        '기타': 'Etc',
-        'Politics': 'Politics',
-        'Science/Tech': 'Science/Tech',
-        'Economy': 'Economy',
-        'Etc': 'Etc',
-      };
-      const allArticles = [...hotList, ...recentList];
-      const seenIds = new Set();
-      for (const item of allArticles) {
-        if (seenIds.has(item.id)) continue;
-        seenIds.add(item.id);
-        try {
-          const detailRes = await fetch(`/news/${item.id}`);
-          const detail = await detailRes.json();
-          const mappedCategory = categoryMap[detail.category] || 'Etc';
-          // 디버깅용 로그 추가
-          console.log('상세조회 category:', detail.category, '-> 매핑:', mappedCategory, 'item:', item);
-          if (themeMap[mappedCategory]) {
-            themeMap[mappedCategory].push({ ...item, category: mappedCategory });
-          }
-        } catch (e) {
-          // pass
-        }
-      }
-      setThemeArticles(themeMap);
-      // 데이터가 비어있으면 경고
-      if (!hotList.length && !recentList.length) {
-        alert('서버에서 뉴스 데이터를 받아오지 못했습니다.');
-      }
-    } catch (e) {
-      alert('뉴스 목록을 불러오는 중 오류가 발생했습니다.');
-      console.error(e);
-    }
-  };
-
   React.useEffect(() => {
-    fetchArticles();
+    async function fetchMockArticles() {
+      const data = await new Promise(resolve => {
+        setTimeout(() => {
+          resolve([
+            {
+              id: 1,
+              title: 'AI가 바꿀 미래',
+              brief: '인공지능이 사회 전반에 미치는 영향과 미래 전망을 다룹니다.안녕하세요ㅕ하애ㅏ매ㅏ앪ㄴ해무훈ㅁ러하ㅜㅡㅈ더르ㅜ헉ㄹ마ㅜㅏㅎㄹ다허ㅜㄱ러ㅏ후가ㅜㅠㅏㅎ루허ㅜㄷㄱ라하숟ㅁ하ㅜㄹㅇㅁㄹ라ㅐㅁ나럼ㄴ아훔너ㅏㅎ루ㅏ넝루ㅏㄴㅇ무란ㅁ우러ㅏㅁ누람ㄴ우ㅏ룸ㄴ아룸나루나ㅓ루너ㅏㅁ루ㅏㅁ너루ㅏㅁ너라ㅓㅁ누라ㅓㅁ누라ㅓㅜㅏㅓㅎ사ㅓ',
+              imageURL: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+              likes: 33,
+              dislikes: 9,
+              category: '과학'
+            },
+            {
+              id: 2,
+              title: '경제 성장률 3% 달성',
+              brief: '올해 경제 성장률이 3%를 돌파했다는 소식입니다.',
+              imageURL: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+              likes: 15,
+              dislikes: 2,
+              category: '경제'
+            },
+            {
+              id: 3,
+              title: '정치 개혁 논의 본격화',
+              brief: '정치권에서 개혁 논의가 본격적으로 시작되었습니다.',
+              imageURL: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
+              likes: 8,
+              dislikes: 1,
+              category: '정치'
+            }
+          ]);
+        }, 500);
+      }); 
+      setPopularArticles(data);
+    }
+    fetchMockArticles();
   }, []);
 
-  // 인기/최신/주제별 정렬 및 페이징 로직은 기존과 동일하게 유지
+  // 정렬: 인기도 (좋아요 + 싫어요)
   const sortedPopularArticles = [...popularArticles].sort((a, b) => {
-    const scoreA = (a.likes ?? 0) + (a.dislikes ?? 0);
-    const scoreB = (b.likes ?? 0) + (b.dislikes ?? 0);
-    if (scoreB !== scoreA) {
-      return scoreB - scoreA;
-    }
-    // 합이 같으면 최신순(id 내림차순)
-    return (b.id ?? 0) - (a.id ?? 0);
+    const scoreA = a.likes + a.dislikes;
+    const scoreB = b.likes + b.dislikes;
+    return scoreB - scoreA;
   });
+
   const totalPopularPages = Math.ceil(sortedPopularArticles.length / articlesPerPage);
   const currentPopularArticles = sortedPopularArticles.slice((currentPopularPage - 1) * articlesPerPage, currentPopularPage * articlesPerPage);
 
-  const sortedLatestArticles = [...latestArticles].sort((a, b) => b.id - a.id);
+  // 최신순 정렬: id 내림차순
+  const sortedLatestArticles = [...popularArticles].sort((a, b) => b.id - a.id);
   const totalLatestPages = Math.ceil(sortedLatestArticles.length / articlesPerPage);
   const currentLatestArticles = sortedLatestArticles.slice((currentLatestPage - 1) * articlesPerPage, currentLatestPage * articlesPerPage);
 
-  const filteredThemeArticles = 
-    themePage === '정치' ? politicsArticles :
-    themePage === '과학' ? scienceArticles :
-    themePage === '경제' ? economyArticles :
-    etcArticles;
+  // 주제별 정렬: 해당 카테고리, id 내림차순
+  const filteredThemeArticles = (themePage === '정치' ? politicsArticles : themePage === '과학' ? scienceArticles : economyArticles).sort((a, b) => b.id - a.id);
   const totalThemePages = filteredThemeArticles.length ? Math.ceil(filteredThemeArticles.length / articlesPerPage) : 1;
   const currentThemeArticles = filteredThemeArticles.slice((currentThemePage - 1) * articlesPerPage, currentThemePage * articlesPerPage);
  
@@ -175,7 +122,6 @@ function App() {
                     <button className="theme-btn" onClick={() => { setThemePage('정치'); setPage('theme'); setShowThemeMenu(false); }}>정치</button>
                     <button className="theme-btn" onClick={() => { setThemePage('과학'); setPage('theme'); setShowThemeMenu(false); }}>과학</button>
                     <button className="theme-btn" onClick={() => { setThemePage('경제'); setPage('theme'); setShowThemeMenu(false); }}>경제</button>
-                    <button className="theme-btn" onClick={() => { setThemePage('기타'); setPage('theme'); setShowThemeMenu(false); }}>기타</button>
                   </div>
                 )}
               </li>
@@ -185,8 +131,8 @@ function App() {
             </ul>
           </nav>
         </div>
-        {/* 로그인 전이면 오른쪽에 Sign in/Register 버튼, 로그인 후면 username+Sign out */}
-        {!user ? (
+        {/* 로그인 전이면 오른쪽에 Sign in/Register 버튼 */}
+        {!user && (
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               className="tab-btn"
@@ -203,25 +149,12 @@ function App() {
               Register
             </button>
           </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ background: '#ede9fe', color: '#222', borderRadius: '8px', padding: '8px 20px', fontWeight: 600, border: '1px solid #a5b4fc' }}>
-              {user.username}
-            </div>
-            <button
-              className="tab-btn"
-              style={{ background: '#fff', color: '#111', border: '1px solid #a5b4fc', borderRadius: '8px', padding: '8px 20px', fontWeight: 600 }}
-              onClick={() => { setUser(null); setPage('main'); }}
-            >
-              Log out
-            </button>
-          </div>
         )}
       </header>
       <hr className="header-divider" />
       <main className="content" style={page === 'newsDetail'
         ? { paddingTop: '80px', height: 'calc(100vh - 80px)', overflow: 'hidden', display: 'flex', flexDirection: 'row' }
-        : { paddingTop: '80px', margin: 0, overflowY: 'auto', height: 'calc(100vh - 80px)'}
+        : { paddingTop: '80px', margin: 0, overflowY: 'auto', height: 'calc(100vh - 80px)' }
       }>
         {page === 'main' && (
           <>
@@ -241,17 +174,7 @@ function App() {
                     imageURL={article.imageURL}
                     likes={article.likes}
                     dislikes={article.dislikes}
-                    onClick={async () => {
-                      // 상세 정보 fetch
-                      try {
-                        const res = await fetch(`/news/${article.id}`);
-                        const detail = await res.json();
-                        setSelectedNews(detail);
-                        setPage('newsDetail');
-                      } catch (e) {
-                        alert('뉴스 상세 정보를 불러오지 못했습니다.');
-                      }
-                    }}
+                    onClick={() => { setSelectedNews(article); setPage('newsDetail'); }}
                   />
                 ))}
               </div>
@@ -273,17 +196,7 @@ function App() {
                     imageURL={article.imageURL}
                     likes={article.likes}
                     dislikes={article.dislikes}
-                    onClick={async () => {
-                      // 상세 정보 fetch
-                      try {
-                        const res = await fetch(`/news/${article.id}`);
-                        const detail = await res.json();
-                        setSelectedNews(detail);
-                        setPage('newsDetail');
-                      } catch (e) {
-                        alert('뉴스 상세 정보를 불러오지 못했습니다.');
-                      }
-                    }}
+                    onClick={() => { setSelectedNews(article); setPage('newsDetail'); }}
                   />
                 ))}
               </div>
@@ -295,10 +208,9 @@ function App() {
                 <span className="sub-title">theme</span>
               </div>
               <div className="card-grid theme-grid">
-                <ThemeCard category="Politics" label="정치" onClick={() => { setThemePage('정치'); setPage('theme'); }} />
-                <ThemeCard category="Science/Tech" label="과학" onClick={() => { setThemePage('과학'); setPage('theme'); }} />
-                <ThemeCard category="Economy" label="경제" onClick={() => { setThemePage('경제'); setPage('theme'); }} />
-                <ThemeCard category="Etc" label="기타" onClick={() => { setThemePage('기타'); setPage('theme'); }} />
+                <ThemeCard category="정치" onClick={() => { setThemePage('정치'); setPage('theme'); }} />
+                <ThemeCard category="과학" onClick={() => { setThemePage('과학'); setPage('theme'); }} />
+                <ThemeCard category="경제" onClick={() => { setThemePage('경제'); setPage('theme'); }} />
               </div>
             </section>
           </>
@@ -315,17 +227,7 @@ function App() {
                   imageURL={article.imageURL}
                   likes={article.likes}
                   dislikes={article.dislikes}
-                  onClick={async () => {
-                    // 상세 정보 fetch
-                    try {
-                      const res = await fetch(`/news/${article.id}`);
-                      const detail = await res.json();
-                      setSelectedNews(detail);
-                      setPage('newsDetail');
-                    } catch (e) {
-                      alert('뉴스 상세 정보를 불러오지 못했습니다.');
-                    }
-                  }}
+                  onClick={() => { setSelectedNews(article); setPage('newsDetail'); }}
                   horizontal
                 />
               ))}
@@ -345,17 +247,7 @@ function App() {
                   imageURL={article.imageURL}
                   likes={article.likes}
                   dislikes={article.dislikes}
-                  onClick={async () => {
-                    // 상세 정보 fetch
-                    try {
-                      const res = await fetch(`/news/${article.id}`);
-                      const detail = await res.json();
-                      setSelectedNews(detail);
-                      setPage('newsDetail');
-                    } catch (e) {
-                      alert('뉴스 상세 정보를 불러오지 못했습니다.');
-                    }
-                  }}
+                  onClick={() => { setSelectedNews(article); setPage('newsDetail'); }}
                   horizontal
                 />
               ))}
@@ -375,17 +267,7 @@ function App() {
                   imageURL={article.imageURL}
                   likes={article.likes}
                   dislikes={article.dislikes}
-                  onClick={async () => {
-                    // 상세 정보 fetch
-                    try {
-                      const res = await fetch(`/news/${article.id}`);
-                      const detail = await res.json();
-                      setSelectedNews(detail);
-                      setPage('newsDetail');
-                    } catch (e) {
-                      alert('뉴스 상세 정보를 불러오지 못했습니다.');
-                    }
-                  }}
+                  onClick={() => { setSelectedNews(article); setPage('newsDetail'); }}
                   horizontal
                 />
               ))}
@@ -393,10 +275,10 @@ function App() {
             <Pagination totalPages={totalThemePages} currentPage={currentThemePage} setCurrentPage={setCurrentThemePage} />
           </section>
         )}
-        {page === 'write' && <WritePage user={user} setPage={setPage} fetchArticles={fetchArticles} />}
-        {page === 'newsDetail' && <NewsDetailPage news={selectedNews} user={user} setSelectedNews={setSelectedNews} fetchArticles={fetchArticles} setPage={setPage} />}
-        {page === 'login' && <LoginPage setUser={setUser} setPage={setPage} />}
-        {page === 'register' && <RegisterPage setUser={setUser} setPage={setPage} />}
+        {page === 'write' && <WritePage user={user} setPage={setPage} />}
+        {page === 'newsDetail' && <NewsDetailPage news={selectedNews} />}
+        {page === 'login' && <LoginPage onSubmit={() => setPage('main')} />}
+        {page === 'register' && <RegisterPage setPage={setPage} />}
       </main>
     </div>
   );
@@ -404,7 +286,6 @@ function App() {
 
 function NewsCard({ title, brief, imageURL, likes, dislikes, onClick, horizontal }) {
   const [hover, setHover] = React.useState(false);
-  const [imgError, setImgError] = React.useState(false);
   if (horizontal) {
     return (
       <div
@@ -432,19 +313,15 @@ function NewsCard({ title, brief, imageURL, likes, dislikes, onClick, horizontal
       >
         {/* 이미지 (왼쪽 2/4) */}
         <div style={{ flex: 2, minWidth: 0, maxWidth: '40%', display: 'flex', alignItems: 'stretch', justifyContent: 'center', background: '#f3f4f6', padding: 0 }}>
-          {imgError || !imageURL ? (
-            <div style={{ width: '100%', height: '100%', background: '#444', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
-          ) : (
-            <img src={imageURL} alt="기사 이미지" style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: 180, display: 'block', margin: 0, padding: 0, border: 0 }} onError={() => setImgError(true)} />
-          )}
+          <img src={imageURL} alt="기사 이미지" style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: 180, display: 'block', margin: 0, padding: 0, border: 0 }} />
         </div>
         {/* 제목+요약 (가운데 1/2) */}
-        <div style={{ flex: 2, padding: '32px 32px 20px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', alignItems: 'flex-start', textAlign: 'left' }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', width: '100%' }}>
-            <h3 style={{ fontSize: '1.6rem', fontWeight: 700, margin: 0, textAlign: 'left' }}>{title}</h3>
+        <div style={{ flex: 2, padding: '32px 32px 20px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+            <h3 style={{ fontSize: '1.6rem', fontWeight: 700, margin: 0 }}>{title}</h3>
           </div>
-          <div style={{ flex: 3, display: 'flex', alignItems: 'flex-start', width: '100%' }}>
-            <p style={{ fontSize: '1.13rem', color: '#444', margin: 0, textAlign: 'left' }}>{brief}</p>
+          <div style={{ flex: 3, display: 'flex', alignItems: 'flex-start' }}>
+            <p style={{ fontSize: '1.13rem', color: '#444', margin: 0 }}>{brief}</p>
           </div>
         </div>
         {/* 좋아요/싫어요 (오른쪽 1/4) */}
@@ -465,16 +342,12 @@ function NewsCard({ title, brief, imageURL, likes, dislikes, onClick, horizontal
   }
   // 기존 카드 레이아웃
   return (
-    <div className="news-card" onClick={onClick} style={{ cursor: 'pointer', textAlign: 'left', alignItems: 'flex-start', display: 'flex', flexDirection: 'column' }}>
-      <div className="image-wrapper" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f3f4f6' }}>
-        {imgError || !imageURL ? (
-          <div style={{ width: '100%', height: 160, background: '#444' }} />
-        ) : (
-          <img src={imageURL} alt="기사 이미지" className="news-image" onError={() => setImgError(true)} />
-        )}
+    <div className="news-card" onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div className="image-wrapper">
+        <img src={imageURL} alt="기사 이미지" className="news-image" />
       </div>
-      <h3 style={{ textAlign: 'left', width: '100%' }}>{title}</h3>
-      <p className="news-brief" style={{ textAlign: 'left', width: '100%' }}>{brief}</p>
+      <h3>{title}</h3>
+      <p className="news-brief">{brief}</p>
       <div className="reaction">
         <span>
           <img src={thumbUpImg} alt="좋아요" className="thumb-icon" />
@@ -489,18 +362,17 @@ function NewsCard({ title, brief, imageURL, likes, dislikes, onClick, horizontal
   );
 }
 
-function ThemeCard({ category, label, onClick }) {
+function ThemeCard({ category, onClick }) {
   const icons = {
-    Politics: '🎤',
-    'Science/Tech': '⚛️',
-    Economy: '💰',
-    Etc: '🎸',
+    정치: '🎤',
+    과학: '⚛️',
+    경제: '💰',
   };
   return (
     <button className="theme-card" onClick={onClick} type="button">
       <div className="icon">{icons[category]}</div>
-      <h3>{label}</h3>
-      <p>{label} 관련 기사로 이동</p>
+      <h3>{category}</h3>
+      <p>{category} 관련 기사로 이동</p>
     </button>
   );
 }

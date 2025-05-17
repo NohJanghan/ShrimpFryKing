@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import thumbUpImg from './Good_hand.png';
 import thumbDownImg from './Bad_hand.png';
 import './CommentSection.css'; // 아래 CSS 참고
@@ -34,10 +34,10 @@ function sortComments(comments, sortBy) {
   return sorted;
 }
 
-export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, agreeSummaryList: propAgreeSummaryList, disagreeSummaryList: propDisagreeSummaryList, user, newsId, onVoteAgree, onVoteDisagree, setPage }) {
+export default function CommentSection() {
   const [vote, setVote] = useState(null); // 'agree' | 'disagree' | null
-  const [agreeCount, setAgreeCount] = useState(propAgreeCount ?? 0);
-  const [disagreeCount, setDisagreeCount] = useState(propDisagreeCount ?? 0);
+  const [agreeCount, setAgreeCount] = useState(2); // 예시값
+  const [disagreeCount, setDisagreeCount] = useState(5); // 예시값
   const [comments, setComments] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
   const [liked, setLiked] = useState(new Set());
@@ -46,26 +46,33 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
 
-  // prop이 바뀌면 동기화
-  useEffect(() => {
-    setAgreeCount(propAgreeCount ?? 0);
-    setDisagreeCount(propDisagreeCount ?? 0);
-  }, [propAgreeCount, propDisagreeCount]);
-
   const totalVotes = agreeCount + disagreeCount;
   const agreePercent = totalVotes ? Math.round((agreeCount / totalVotes) * 100) : 0;
   const disagreePercent = totalVotes ? Math.round((disagreeCount / totalVotes) * 100) : 0;
 
-  const agreeSummaryList = propAgreeSummaryList ?? [
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다'
+  // 예시 요약 데이터 (실제는 백엔드 연동 예정)
+  const agreeSummaryList = [
+    '장애인의 이동권 보장은 당연한 권리라는 의견이 많습니다.',
+    '사회적 약자에 대한 배려가 필요합니다.',
+    '이동권 보장은 사회 통합에 기여합니다.'
   ];
-  const disagreeSummaryList = propDisagreeSummaryList ?? [
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다'
+  const disagreeSummaryList = [
+    '예산 문제와 현실적인 한계로 실현이 어렵다는 의견이 있습니다.',
+    '기존 인프라 개선이 우선이라는 의견이 있습니다.',
+    '실효성에 대한 의문이 제기됩니다.'
   ];
+
+  const handleVote = (type) => {
+    if (vote === type) return;
+    if (type === 'agree') {
+      setAgreeCount(agreeCount + 1);
+      if (vote === 'disagree') setDisagreeCount(disagreeCount - 1);
+    } else {
+      setDisagreeCount(disagreeCount + 1);
+      if (vote === 'agree') setAgreeCount(agreeCount - 1);
+    }
+    setVote(type);
+  };
 
   const handleSend = () => {
     const text = input.trim();
@@ -233,7 +240,7 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
       <div className="vote-bar">
         <button
           className={`vote-btn agree ${vote === 'agree' ? 'selected' : ''}`}
-          onClick={onVoteAgree}
+          onClick={() => handleVote('agree')}
         >
           <img src={thumbUpImg} alt="찬성" style={{width:'20px',verticalAlign:'middle'}} />
           <span style={{marginLeft:4}}>{agreeCount}개<br/><span style={{fontSize:'12px'}}>({agreePercent}%)</span></span>
@@ -250,7 +257,7 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
         </div>
         <button
           className={`vote-btn disagree ${vote === 'disagree' ? 'selected' : ''}`}
-          onClick={onVoteDisagree}
+          onClick={() => handleVote('disagree')}
         >
           <img src={thumbDownImg} alt="반대" style={{width:'20px',verticalAlign:'middle'}} />
           <span style={{marginLeft:4}}>{disagreeCount}개<br/><span style={{fontSize:'12px'}}>({disagreePercent}%)</span></span>

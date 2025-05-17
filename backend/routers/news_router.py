@@ -1,21 +1,12 @@
-<<<<<<< HEAD
-from fastapi import APIRouter, Request
-=======
 from fastapi import APIRouter, HTTPException, Request, Response
->>>>>>> c54856d61d323149aa15c5cbdf1ffec9c1ffa19b
 from routers.dto import news_dto
 from typing import Literal
 from services.news_service.get_news import get_news
 from services.news_service.get_news_by_id import get_news_by_id
 from services.news_service.create_news import create_news
-<<<<<<< HEAD
-from db.DBservice import db
-from fastapi.concurrency import run_in_threadpool
-=======
 from services.news_service.like_news import like_news, dislike_news, remove_like_news, remove_dislike_news
 from services.user_service import session_store
 from routers.middlewares import auth_middleware
->>>>>>> c54856d61d323149aa15c5cbdf1ffec9c1ffa19b
 
 router = APIRouter(prefix="/news", tags=["news"])
 

@@ -1,31 +1,14 @@
 import React, { useState } from 'react';
 import './App.css';
 
-function LoginPage({ setUser, setPage }) {
+function LoginPage({ onSubmit }) {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const isValid = id.trim() !== '' && password.trim() !== '';
 
-  const BASE_URL = 'http://localhost:8000';
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-    try {
-      const query = `id=${encodeURIComponent(id)}&password=${encodeURIComponent(password)}`;
-      const res = await fetch(`${BASE_URL}/user/login?${query}`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (res.ok) {
-        setUser({ id, username: id });
-        setPage('main');
-      } else {
-        setError('로그인 실패: 아이디 또는 비밀번호를 확인하세요');
-      }
-    } catch (e) {
-      setError('서버 오류로 로그인에 실패했습니다');
-    }
+    if (onSubmit) onSubmit({ id, password });
   };
 
   return (
@@ -105,7 +88,6 @@ function LoginPage({ setUser, setPage }) {
             Submit
           </button>
         </form>
-        {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
       </div>
     </div>
   );

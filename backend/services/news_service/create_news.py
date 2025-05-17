@@ -1,4 +1,3 @@
-import os
 from fastapi import HTTPException
 from routers.dto import news_dto
 from crawling.article_extractor import extract_articles_from_url
@@ -8,7 +7,6 @@ from db.DBservice import db
 from db.entity import CreateNewsItem
 from utils.article import get_first_image_url
 
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 async def create_news(news_url: str, user_id: str) -> bool:
     try:
@@ -32,11 +30,7 @@ async def create_news(news_url: str, user_id: str) -> bool:
             image_url=image_url,
             category=category,
             brief=brief,
-<<<<<<< HEAD
-            author_id=author_id,  # 실제 author_id 사용
-=======
             author_id=user_id,
->>>>>>> c54856d61d323149aa15c5cbdf1ffec9c1ffa19b
         )
         # print(f"[INFO] Inserting news into DB - Title: {title}, URL: {news_url}")
         db.create_news(data)
@@ -44,4 +38,4 @@ async def create_news(news_url: str, user_id: str) -> bool:
 
     except Exception as e:
         print(f"[ERROR] Failed to process news: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An error occurred while processing the news article.")
