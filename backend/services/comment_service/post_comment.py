@@ -22,9 +22,9 @@ async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest):
 
     data.posneg = await classify_opinion(text)
     risk = await check_risky(data.content)
-    
+
     if risk == "High Risk":
-      raise HTTPException(status_code=400, detail="Comment contains risky content")
+      return False
 
     db.create_comment(data, user_id=comment.author_id)
     return True
