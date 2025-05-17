@@ -67,7 +67,7 @@ class CommentItem:
             return False
     def get_string(self) -> str:
         # return comment string
-        ret = self.id + SEPERATOR + self.content + SEPERATOR + str(self.posneg) + SEPERATOR + str(self.like) + SEPERATOR + str(self.dislike) + SEPERATOR + str(self.Isliked) + SEPERATOR + str(self.Isdisliked) + SEPERATOR
+        ret = self.author_id + SEPERATOR + self.content + SEPERATOR + str(self.posneg) + SEPERATOR + str(self.like) + SEPERATOR + str(self.dislike) + SEPERATOR + str(self.Isliked) + SEPERATOR + str(self.Isdisliked) + SEPERATOR
         for c in self.additional_comment:
             ret += c[0] + SEPERATOR + c[1] + SEPERATOR
         return ret
@@ -75,7 +75,7 @@ class CommentItem:
         # reset comment using string
         try:
             lines = string.split(SEPERATOR)
-            self.id = lines[0]
+            self.author_id = lines[0]
             self.content = lines[1]
             self.posneg = int(lines[2])
             self.like = int(lines[3])

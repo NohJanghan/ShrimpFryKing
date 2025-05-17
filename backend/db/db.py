@@ -242,8 +242,8 @@ class NewsDB(DB):
         except:
             print("insert news error")
             return False
-        
-    def update_news(self, news_id:int, good=None, bad=None, opinion=None, commentlist:list=None) -> bool:
+
+    def update_news(self, news_id:int, like=None, dislike=None, opinion=None, commentlist:list=None) -> bool:
         # True : update success
         # False : update failed
         # comment : list of comment
@@ -252,7 +252,7 @@ class NewsDB(DB):
             if self.get_news(news_id) == {}:
                 print("news not found")
                 return False
-            for attr in ["good", "bad", "opinion", "comment"]:
+            for attr in ["like", "dislike", "opinion", "comment"]:
                 if eval(attr) != None:
                     if attr == "comment":
                         comment = overSEPERATOR.join(list(map(lambda x : x.get_string(), commentlist)))
