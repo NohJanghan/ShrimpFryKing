@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from backend.utils.convert_type import news_to_detail
 from routers.dto import news_dto
 from crawling.article_extractor import extract_articles_from_url
 from categorizer.article_classifier import classify_article
@@ -10,8 +11,9 @@ from utils.article import get_first_image_url
 async def get_news_by_id(news_id: int):
     try:
         news_item = db.get_news_by_id(news_id)
+        news_item = news_to_detail(news_item)
 
-        return news_dto.NewsItemDetail.from_orm(news_item)
+        return news_item
 
     except Exception as e:
         print(f"[ERROR] Failed to get news by ID: {e}")
