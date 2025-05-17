@@ -5,7 +5,14 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "uvicorn>=0.34.2",
     "datetime>=5.5",
     "numpy>=2.2.5",
     "pandas>=2.2.3",
+    "beautifulsoup4>=4.13.4",
+    "google-generativeai>=0.8.5",
+    "markdownify>=1.1.0",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
 ]

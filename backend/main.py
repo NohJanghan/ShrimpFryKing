@@ -1,6 +1,12 @@
-def main():
-    print("Hello from backend!")
+from fastapi import FastAPI
+from routers import news_router
+from dotenv import load_dotenv
 
+app = FastAPI()
+load_dotenv()
 
-if __name__ == "__main__":
-    main()
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+app.include_router(news_router.router)
