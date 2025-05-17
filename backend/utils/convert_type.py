@@ -15,7 +15,7 @@ def news_to_detail(news_item: NewsItem) -> news_dto.NewsItemDetail:
         like=news_item.like,
         dislike=news_item.dislike,
         opinion=news_item.opinion,
-        comment=news_dto.CommentItem.model_valiate(news_item.comment),
+        comment=news_dto.CommentItem.model_validate(news_item.comment),
         Isliked=news_item.Isliked,
         Isdisliked=news_item.Isdisliked
     )
