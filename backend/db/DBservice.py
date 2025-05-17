@@ -48,6 +48,8 @@ class DBservice():
         try:
             if len(self.userDB.get_user(user_id)) != 0:
                 return True
+            elif user_id == "":
+                return True # guest
             else:
                 return False
         except:
