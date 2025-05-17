@@ -203,6 +203,7 @@ class CommentItem:
             return True
         except:
             print("reset comment error")
+            print(string)
             return False
     def replace(self):
         self.content = seperaterUNRUN(self.content)

@@ -4,7 +4,9 @@ from db.DBservice import db
 async def post_comment_like(news_id, comment_i, user_id):
   try:
     news_item = db.get_news_by_id(news_id, user_id=user_id)
-    comment_item = news_item.comment[comment_item[comment_i]]
+    comment_item = news_item.comment[comment_i]
+    
+    print(123123)
 
     if comment_item is None:
       raise HTTPException(status_code=404, detail="Comment not found")
@@ -12,7 +14,7 @@ async def post_comment_like(news_id, comment_i, user_id):
     if comment_item.Isliked:
       return False
     else:
-      db.update_comment(news_id, comment_i, likes = 1)
+      db.update_comment(news_id=news_id, comment_index=comment_i, likes = 1, user_id=user_id)
       return True
 
   except Exception as e:
@@ -24,13 +26,13 @@ async def post_comment_like(news_id, comment_i, user_id):
 async def delete_comment_like(news_id, comment_i, user_id):
   try:
     news_item = db.get_news_by_id(news_id, user_id=user_id)
-    comment_item = news_item.comment[comment_item[comment_i]]
+    comment_item = news_item.comment[comment_i]
 
     if comment_item is None:
       raise HTTPException(status_code=404, detail="Comment not found")
     
     if comment_item.Isliked:
-      db.update_comment(news_id, comment_i, likes = -1)
+      db.update_comment(news_id, comment_i, likes = -1, user_id=user_id)
       return True
     else:
       return False
