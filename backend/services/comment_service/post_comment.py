@@ -17,11 +17,7 @@ async def post_comment(news_id: int, content: str, user_id: str) -> bool:
     data.author_id = user_id
     data.parent_id = None
 
-    print(1111)
-
     news_item = await get_news_by_id(news_id, user_id)
-
-    print(1111)
 
     text = {
        "brief": news_item.brief,
@@ -29,10 +25,10 @@ async def post_comment(news_id: int, content: str, user_id: str) -> bool:
     }
 
     data.posneg = await classify_opinion(text)
-    #risk = await check_risky(data.content)
+    risk = await check_risky(data.content)
 
-    #if risk == "High Risk":
-    #  return False
+    if risk == "High Risk":
+      return False
 
     db.create_comment(data, user_id)
     return True
