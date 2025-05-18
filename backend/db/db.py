@@ -137,7 +137,7 @@ class DB:
                 elif _option == "is":
                     cst += "is ?" #null/tf/unk
                     val_list.append(_option_value[1])
-                elif _option == "isnot": 
+                elif _option == "isnot":
                     cst += "is not ?" #null/tf/unk
                     val_list.append(_option_value[1])
                 elif _option == "bw":
@@ -210,7 +210,7 @@ class DB:
                 elif _option == "is":
                     cst += "is ?" #null/tf/unk
                     val_list.append(_option_value[1])
-                elif _option == "isnot": 
+                elif _option == "isnot":
                     cst += "is not ?" #null/tf/unk
                     val_list.append(_option_value[1])
                 elif _option == "bw":
@@ -327,7 +327,7 @@ class NewsDB(DB):
         except:
             print("insert news error")
             return False
-        
+
     def update_news(self, news_id:int, like=None, dislike=None, opinion=None, comment:list=None, likelist=None, dislikelist=None, user_id="") -> bool:
         # True : update success
         # False : update failed
