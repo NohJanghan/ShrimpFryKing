@@ -60,7 +60,7 @@ frontend/
 ## 현재 기능
 
 *   **사용자 인증:**
-    *   회원가입 (`RegisterPage.js`)
+    *   회원가입 (`RegisterPage.js`) - 아이디 중복확인 후 이름/비밀번호 입력 활성화
     *   로그인 (`LoginPage.js`)
 *   **뉴스:**
     *   뉴스 목록 조회 (메인 페이지 `MainPage.js`, 최신 뉴스 페이지 `LatestPage.js`, `apis/getNewsList.js`, `components/NewsCard.js`)

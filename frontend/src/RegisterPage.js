@@ -47,10 +47,10 @@ function RegisterPage({ setUser, setPage }) {
     try {
       const query = `id=${encodeURIComponent(id)}&password=${encodeURIComponent(password)}&user_name=${encodeURIComponent(username)}`;
       const res = await fetch(`${BASE_URL}/user/register?${query}`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include', // credentials 옵션 추가
       });
       if (res.ok) {
-        setUser({ id, username });
         setAlertMsg('회원가입이 완료되었습니다!');
         setTimeout(() => {
           setAlertMsg('');
@@ -94,13 +94,14 @@ function RegisterPage({ setUser, setPage }) {
                 style={{
                   fontSize: '1rem',
                   fontWeight: 500,
-                  background: '#f3f4f6',
+                  background: !idChecked ? '#dbeafe' : '#f3f4f6',
                   color: '#2563eb',
                   border: '1px solid #c7d2fe',
                   borderRadius: '6px',
                   padding: '4px 14px',
                   cursor: 'pointer',
-                  marginLeft: 8
+                  marginLeft: 8,
+                  boxShadow: !idChecked ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                 }}
               >
                 중복확인
@@ -138,7 +139,13 @@ function RegisterPage({ setUser, setPage }) {
             )}
           </div>
           <div className="mb-8">
-            <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#374151', marginBottom: '1rem', textAlign: 'left' }}>Username</div>
+            <div style={{
+              fontSize: '1.2rem',
+              fontWeight: 600,
+              color: (!idChecked || !idAvailable) ? '#9ca3af' : '#374151',
+              marginBottom: '1rem',
+              textAlign: 'left'
+            }}>Username</div>
             <input
               type="text"
               placeholder="사용자 이름을 입력하세요"
@@ -150,6 +157,8 @@ function RegisterPage({ setUser, setPage }) {
                 fontSize: '1.2rem',
                 outline: 'none',
                 marginBottom: '0.5rem',
+                background: (!idChecked || !idAvailable) ? '#f3f4f6' : 'white',
+                color: (!idChecked || !idAvailable) ? '#9ca3af' : 'inherit',
               }}
               value={username}
               onChange={e => setUsername(e.target.value)}
@@ -158,9 +167,18 @@ function RegisterPage({ setUser, setPage }) {
             {usernameInvalid && (
               <div style={{ color: '#2563eb', fontSize: '0.98rem', marginTop: 2, marginLeft: 2 }}>사용할 수 없는 문자열이 포함되었습니다</div>
             )}
+            {!idChecked && (
+              <div style={{ color: '#6b7280', fontSize: '0.98rem', marginTop: 2, marginLeft: 2 }}>아이디 중복 확인을 먼저 진행해주세요</div>
+            )}
           </div>
           <div className="mb-8">
-            <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#374151', marginBottom: '1rem', textAlign: 'left' }}>Password</div>
+            <div style={{
+              fontSize: '1.2rem',
+              fontWeight: 600,
+              color: (!idChecked || !idAvailable) ? '#9ca3af' : '#374151',
+              marginBottom: '1rem',
+              textAlign: 'left'
+            }}>Password</div>
             <input
               type="password"
               placeholder="비밀번호를 입력하세요"
@@ -172,6 +190,8 @@ function RegisterPage({ setUser, setPage }) {
                 fontSize: '1.2rem',
                 outline: 'none',
                 marginBottom: '0.5rem',
+                background: (!idChecked || !idAvailable) ? '#f3f4f6' : 'white',
+                color: (!idChecked || !idAvailable) ? '#9ca3af' : 'inherit',
               }}
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -179,6 +199,9 @@ function RegisterPage({ setUser, setPage }) {
             />
             {passwordInvalid && (
               <div style={{ color: '#2563eb', fontSize: '0.98rem', marginTop: 2, marginLeft: 2 }}>사용할 수 없는 문자열이 포함되었습니다</div>
+            )}
+            {!idChecked && (
+              <div style={{ color: '#6b7280', fontSize: '0.98rem', marginTop: 2, marginLeft: 2 }}>아이디 중복 확인을 먼저 진행해주세요</div>
             )}
           </div>
           <button
