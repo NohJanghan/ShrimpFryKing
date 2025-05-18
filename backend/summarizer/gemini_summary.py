@@ -24,7 +24,7 @@ async def summarize_comment(text: list[str]) -> str:
     Below are user comments on a news article.
 
     Please analyze the comments and extract the **{comment_len} most commonly discussed key points**.
-    Write your answer in Korean, using the format below. If there are no sufficient comments, please write "댓글이 충분하지 않습니다.".:
+    Write your answer in Korean, using the format below. If there are 3 or less useful comments, please write "댓글이 충분하지 않습니다.".:
 
     1. ...
     2. ...
