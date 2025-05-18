@@ -16,26 +16,7 @@ function findCommentById(comments, id) {
   return null;
 }
 
-function deleteCommentById(comments, id) {
-  return comments.filter(comment => {
-    if (comment.id === id) return false;
-    comment.replies = deleteCommentById(comment.replies, id);
-    return true;
-  });
-}
-
-function sortComments(comments, sortBy) {
-  const sorted = [...comments];
-  if (sortBy === 'latest') {
-    sorted.sort((a, b) => b.id - a.id);
-  } else if (sortBy === 'popular') {
-    sorted.sort((a, b) => b.likes - a.likes);
-  }
-  return sorted;
-}
-
-export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, agreeSummaryList: propAgreeSummaryList, disagreeSummaryList: propDisagreeSummaryList, user, newsId, onVoteAgree, onVoteDisagree, setPage }) {
-  const [vote, setVote] = useState(null); // 'agree' | 'disagree' | null
+export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, agreeSummaryList: propAgreeSummaryList, disagreeSummaryList: propDisagreeSummaryList, user, newsId, onVoteAgree, onVoteDisagree, setPage, vote, setVote }) {
   const [agreeCount, setAgreeCount] = useState(propAgreeCount ?? 0);
   const [disagreeCount, setDisagreeCount] = useState(propDisagreeCount ?? 0);
   const [comments, setComments] = useState([]);
@@ -52,10 +33,10 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
     setDisagreeCount(propDisagreeCount ?? 0);
   }, [propAgreeCount, propDisagreeCount]);
 
-  // vote 상태를 newsId별로 동기화 (로그인 유저라면 서버에서 받아오는 게 이상적이나, 여기선 프론트에서만 관리)
+  // vote prop이 바뀌면 내부 vote도 동기화
   useEffect(() => {
-    setVote(null); // 기사 바뀌면 초기화
-  }, [newsId]);
+    setVote && setVote(vote ?? null);
+  }, [vote, setVote]);
 
   const totalVotes = agreeCount + disagreeCount;
   const agreePercent = totalVotes ? Math.round((agreeCount / totalVotes) * 100) : 0;
@@ -135,16 +116,14 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
       return;
     }
     if (!newsId) return;
-    // 이미 찬성 상태면 취소
+    let action = 1;
     if (vote === 'agree') {
-      // 취소 요청
-      await onVoteAgree && onVoteAgree(0); // action: 0
-      setVote(null);
+      action = 0;
     } else {
-      // 찬성 요청
-      await onVoteAgree && onVoteAgree(1); // action: 1
-      setVote('agree');
+      action = 1;
     }
+    // fetch 제거, onVoteAgree만 호출
+    await onVoteAgree && onVoteAgree(action);
   };
   const handleVoteDisagree = async () => {
     if (!user) {
@@ -153,16 +132,14 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
       return;
     }
     if (!newsId) return;
-    // 이미 반대 상태면 취소
+    let action = 1;
     if (vote === 'disagree') {
-      // 취소 요청
-      await onVoteDisagree && onVoteDisagree(0); // action: 0
-      setVote(null);
+      action = 0;
     } else {
-      // 반대 요청
-      await onVoteDisagree && onVoteDisagree(1); // action: 1
-      setVote('disagree');
+      action = 1;
     }
+    // fetch 제거, onVoteDisagree만 호출
+    await onVoteDisagree && onVoteDisagree(action);
   };
 
   const renderComments = (comments, isReply = false) => {
