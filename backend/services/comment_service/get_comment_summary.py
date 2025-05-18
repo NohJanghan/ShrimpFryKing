@@ -25,8 +25,8 @@ async def get_comment_summary(news_id: int, user_id: str) -> str:
     await negative_summary_task
 
     return {
-        "positive_summary": positive_summary_task,
-        "negative_summary": negative_summary_task
+        "summarized_positive_comment": positive_summary_task,
+        "summarized_negative_comment": negative_summary_task
     }
 
   except Exception as e:
