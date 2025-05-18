@@ -1,5 +1,6 @@
 import React from 'react';
 import CommentSection from './CommentSection';
+import ReactMarkdown from 'react-markdown';
 
 function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage }) {
   const [like, setLike] = React.useState(news.like ?? 0);
@@ -23,35 +24,22 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
   const disagreeSummaryList = news.disagreeSummaryList ?? ["아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다"];
 
   return (
-    <div style={{ 
-        display: 'flex', 
+    <div style={{
+        display: 'flex',
         flexDirection: 'row',
-        height: '100%', 
+        height: '100%',
         width: '100%',
-        overflow: 'hidden' 
+        overflow: 'hidden'
     }}>
-      <div style={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        borderRight: '1px solid #e5e7eb', 
-        background: '#fff', 
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        borderRight: '1px solid #e5e7eb',
+        background: '#fff',
         minWidth: 0 }}>
         <div style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'left' }}>{news.title}</h2>
-          <img
-            src={imgError ? undefined : (news.image_url || news.imageURL)}
-            alt="뉴스 이미지"
-            style={{ width: '100%', margin: '2rem 0', borderRadius: '1rem', minHeight: 180, background: '#f3f4f6', objectFit: 'cover', display: imgError ? 'none' : 'block' }}
-            onError={() => setImgError(true)}
-          />
-          {imgError && (
-            <div style={{ width: '100%', height: 180, background: '#444', borderRadius: '1rem', margin: '2rem 0' }} />
-          )}
-          <p style={{fontSize: '1.5rem', whiteSpace: 'pre-line', textAlign: 'left' }}>{news.content}</p>
-        </div>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', background: '#f3f4f6'}}>
-        <div style={{ padding: '2rem' }}>
+          <ReactMarkdown>{news.content}</ReactMarkdown>
           <CommentSection
             agreeCount={like}
             disagreeCount={dislike}
