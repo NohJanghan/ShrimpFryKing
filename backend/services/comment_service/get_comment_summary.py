@@ -12,9 +12,9 @@ async def get_comment_summary(news_id: int, user_id: str) -> str:
     negative_comments = []
     for comment in text:
         if comment.posneg == 1:
-            positive_comments.append(comment)
+            positive_comments.append(comment.content)
         elif comment.posneg == -1:
-            negative_comments.append(comment)
+            negative_comments.append(comment.content)
         else:
             print(f"[ERROR] Invalid comment sentiment: {comment}")
             continue
