@@ -58,12 +58,8 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
       <div style={{ flex: 1, overflowY: 'auto', background: '#f3f4f6', minWidth: 0 }}>
         <div style={{ padding: '2rem' }}>
           <CommentSection
-            agreeCount={like}
-            disagreeCount={dislike}
-            agreeSummaryList={agreeSummaryList}
-            disagreeSummaryList={disagreeSummaryList}
-            user={user}
             newsId={news.id || news.news_id}
+            user={user}
             vote={vote}
             setVote={setVote}
             onVoteAgree={async () => {
@@ -151,6 +147,11 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               }
             }}
             setPage={setPage}
+            agreeCount={like}
+            disagreeCount={dislike}
+            agreeSummaryList={agreeSummaryList}
+            disagreeSummaryList={disagreeSummaryList}
+            fetchArticles={fetchArticles}
           />
         </div>
       </div>
