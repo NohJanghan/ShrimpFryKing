@@ -31,7 +31,7 @@ function mapComment(raw, idx) {
   };
 }
 
-export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, agreeSummaryList: propAgreeSummaryList, disagreeSummaryList: propDisagreeSummaryList, user, newsId, onVoteAgree, onVoteDisagree, setPage, vote, setVote }) {
+export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, user, newsId, onVoteAgree, onVoteDisagree, setPage, vote, setVote }) {
   const [agreeCount, setAgreeCount] = useState(propAgreeCount ?? 0);
   const [disagreeCount, setDisagreeCount] = useState(propDisagreeCount ?? 0);
   const [comments, setComments] = useState([]);
@@ -41,6 +41,16 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
   const [input, setInput] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
+  const [agreeSummaryList, setAgreeSummaryList] = useState([
+    '아직 요약 내용이 없습니다',
+    '아직 요약 내용이 없습니다',
+    '아직 요약 내용이 없습니다'
+  ]);
+  const [disagreeSummaryList, setDisagreeSummaryList] = useState([
+    '아직 요약 내용이 없습니다',
+    '아직 요약 내용이 없습니다',
+    '아직 요약 내용이 없습니다'
+  ]);
 
   // prop이 바뀌면 동기화
   useEffect(() => {
@@ -56,17 +66,6 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
   const totalVotes = agreeCount + disagreeCount;
   const agreePercent = totalVotes ? Math.round((agreeCount / totalVotes) * 100) : 0;
   const disagreePercent = totalVotes ? Math.round((disagreeCount / totalVotes) * 100) : 0;
-
-  const agreeSummaryList = propAgreeSummaryList ?? [
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다'
-  ];
-  const disagreeSummaryList = propDisagreeSummaryList ?? [
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다',
-    '아직 요약 내용이 없습니다'
-  ];
 
   // 댓글/대댓글 목록은 항상 fetchComments로 백엔드에서 받아옴
   const fetchComments = useCallback(async () => {
@@ -90,6 +89,29 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
   useEffect(() => { 
     fetchComments(); 
   }, [fetchComments]);
+
+  // 댓글 요약 fetch
+  useEffect(() => {
+    if (!newsId) return;
+    const fetchSummary = async () => {
+      try {
+        const res = await fetch(`/comment/summary?news_id=${newsId}`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        // 예시: data = { agreeSummaryList: [...], disagreeSummaryList: [...] }
+        setAgreeSummaryList(Array.isArray(data.agreeSummaryList) && data.agreeSummaryList.length > 0
+          ? data.agreeSummaryList.slice(0, 3)
+          : ['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
+        setDisagreeSummaryList(Array.isArray(data.disagreeSummaryList) && data.disagreeSummaryList.length > 0
+          ? data.disagreeSummaryList.slice(0, 3)
+          : ['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
+      } catch (e) {
+        setAgreeSummaryList(['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
+        setDisagreeSummaryList(['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
+      }
+    };
+    fetchSummary();
+  }, [newsId, comments]);
 
   // 댓글/대댓글 등록 시 createdAt(Date.now())을 쿼리로 전달, 등록 후 fetchComments로 목록 갱신
   const handleSend = async () => {
