@@ -245,50 +245,39 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
   function nestComments(flatComments) {
     const map = {};
     const roots = [];
-    // 먼저 모든 댓글을 맵에 저장
+    // 모든 댓글을 맵에 저장
     for (const comment of flatComments) {
       map[comment.comment_index] = { ...comment, replies: [] };
     }
-    // 그 다음 계층 구조 생성
+    // additional_comment를 replies로 변환
+    for (const comment of flatComments) {
+      if (comment.additional_comment && comment.additional_comment.length > 0) {
+        comment.additional_comment.forEach((item, idx) => {
+          const reply = {
+            id: `${comment.id}_reply_${idx}`,
+            username: item[0],
+            text: item[1],
+            type: 1,
+            sentiment: comment.sentiment,
+            likes: 0,
+            replies: [],
+            comment_index: `${comment.comment_index}_${idx}`,
+            Isliked: false,
+            parent_id: comment.comment_index
+          };
+          map[comment.comment_index].replies.push(reply);
+        });
+      }
+    }
+    // 계층 구조 생성
     for (const comment of flatComments) {
       if (comment.parent_id != null && map[comment.parent_id]) {
-        // 부모 댓글이 있으면 그 부모의 replies에 추가
         map[comment.parent_id].replies.push(map[comment.comment_index]);
       } else {
-        // 부모 댓글이 없으면 루트에 추가
         roots.push(map[comment.comment_index]);
       }
     }
     return roots;
-  }
-
-  // 대댓글 추가 처리 함수 - 백엔드 호환
-  function processAdditionalComments(comment) {
-    // additional_comment가 비어있지 않은 경우에만 처리
-    if (!comment.additional_comment || comment.additional_comment.length === 0) {
-      return comment;
-    }
-
-    // additional_comment를 replies로 변환
-    const additionalReplies = comment.additional_comment.map((item, idx) => ({
-      id: `${comment.id}_reply_${idx}`,
-      username: item[0],
-      text: item[1],
-      type: 1,
-      createdAt: comment.createdAt ? comment.createdAt + (idx + 1) * 1000 : Date.now() + (idx + 1) * 1000,
-      sentiment: comment.sentiment,
-      likes: 0,
-      replies: [],
-      comment_index: `${comment.comment_index}_${idx}`,
-      Isliked: false,
-      parent_id: comment.comment_index
-    }));
-
-    // 기존 replies와 additional_comment에서 변환한 replies 합치기
-    return {
-      ...comment,
-      replies: [...(comment.replies || []), ...additionalReplies]
-    };
   }
 
   // renderComments: createdAt이 항상 고정된 값으로, 댓글/대댓글 아래에 표기
@@ -300,7 +289,6 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
       sorted = [...safeComments].sort((a, b) => b.likes - a.likes);
     }
     return sorted.map((comment, idx) => {
-      const processedComment = processAdditionalComments(comment);
       return (
         <div
           className="comment-item"
@@ -352,7 +340,6 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
                 comment.text
               )}
             </div>
-            {/* 시간 표시는 제거 */}
             <div className="comment-actions">
               {!isReply && (
                 <button
@@ -380,8 +367,8 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
               )}
             </div>
             {/* 대댓글 렌더링: 항상 부모 댓글 아래에, 들여쓰기(↳)로 계층적으로 */}
-            {processedComment.replies && processedComment.replies.length > 0 && (
-              <div className="reply-box">{renderComments(processedComment.replies, true)}</div>
+            {comment.replies && comment.replies.length > 0 && (
+              <div className="reply-box">{renderComments(comment.replies, true)}</div>
             )}
           </div>
         </div>
