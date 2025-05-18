@@ -10,6 +10,9 @@ from utils.article import get_first_image_url
 
 async def create_news(news_url: str, user_id: str) -> bool:
     try:
+        if user_id is "":
+            # guest
+            return False
         article = extract_articles_from_url(news_url)
         print(f"[INFO] Extracted article - article: {article}")
         content = article["content"]
@@ -33,9 +36,6 @@ async def create_news(news_url: str, user_id: str) -> bool:
             author_id=user_id,
         )
         # print(f"[INFO] Inserting news into DB - Title: {title}, URL: {news_url}")
-        print("-----")
-        print(user_id)
-        print("-----")
         db.create_news(data, user_id)
         return True
 
