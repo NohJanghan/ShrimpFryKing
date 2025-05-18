@@ -18,11 +18,11 @@ async def get_comment_summary_handler(news_id: int, request: Request, response: 
     return await get_comment_summary(news_id, user_id)
 
 @router.post('/like', response_model=bool)
-async def post_comment_like_handler(news_id: int, comment_index: int, request: Request, response: Response):
+async def post_comment_like_handler(news_id: int, comment_i: int, request: Request, response: Response):
     user_id = auth_middleware(request, response)
-    return await post_comment_like(news_id, comment_index, user_id)
+    return await post_comment_like(news_id, comment_i, user_id)
 
 @router.delete('/like', response_model=bool)
-async def delete_comment_like_handler(news_id: int, comment_index: int, request: Request, response: Response):
+async def delete_comment_like_handler(news_id: int, comment_i: int, request: Request, response: Response):
     user_id = auth_middleware(request, response)
-    return await delete_comment_like(news_id, comment_index, user_id)
+    return await delete_comment_like(news_id, comment_i, user_id)

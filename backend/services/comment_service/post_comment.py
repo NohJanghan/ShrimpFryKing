@@ -8,13 +8,20 @@ from categorizer.gemini_classifier import classify_content_risk
 
 async def post_comment(news_id: int, comment: comment_dto.PostCommentRequest, user_id: str) -> bool:
   try:
+    if user_id is "":
+      # guest
+      return False
     data = CreateCommentItem()
     data.content = comment.content
     data.news_id = news_id
     data.author_id = comment.author_id
     data.parent_id = None
 
+    print(1111)
+
     news_item = await get_news_by_id(news_id, user_id)
+
+    print(1111)
 
     text = {
        "brief": news_item.brief,
