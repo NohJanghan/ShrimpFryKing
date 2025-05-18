@@ -1,6 +1,6 @@
 import React from 'react';
 import CommentSection from './CommentSection';
-import Markdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 
 function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage }) {
   const [like, setLike] = React.useState(news.like ?? 0);
@@ -38,7 +38,7 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
         minWidth: 0 }}>
         <div style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'left' }}>{news.title}</h2>
-          <Markdown children={news.content}></Markdown>
+          <ReactMarkdown>{news.content}</ReactMarkdown>
           <CommentSection
             agreeCount={like}
             disagreeCount={dislike}
