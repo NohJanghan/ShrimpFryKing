@@ -5,23 +5,32 @@ import ReactMarkdown from 'react-markdown';
 function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage }) {
   const [like, setLike] = React.useState(news.like ?? 0);
   const [dislike, setDislike] = React.useState(news.dislike ?? 0);
-  const [loading, setLoading] = React.useState(false);
-  const [imgError, setImgError] = React.useState(false);
   const [vote, setVote] = React.useState(null);
 
   React.useEffect(() => {
     setLike(news.like ?? 0);
     setDislike(news.dislike ?? 0);
-    setImgError(false);
   }, [news]);
 
   if (!news) return <div>뉴스 정보가 없습니다.</div>;
 
   // 찬성/반대/요약 prop 준비
-  const agreeCount = like;
-  const disagreeCount = dislike;
   const agreeSummaryList = news.agreeSummaryList ?? ["아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다"];
   const disagreeSummaryList = news.disagreeSummaryList ?? ["아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다", "아직 요약 내용이 없습니다"];
+
+  // 본문에서 첫 번째 이미지는 렌더링하지 않도록 커스텀 렌더러 정의
+  const skipFirstImage = () => {
+    let firstImageSkipped = false;
+    return {
+      img({node, ...props}) {
+        if (!firstImageSkipped) {
+          firstImageSkipped = true;
+          return null;
+        }
+        return <img {...props} alt={props.alt || ''} />;
+      }
+    };
+  };
 
   return (
     <div style={{
@@ -31,6 +40,7 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
         width: '100%',
         overflow: 'hidden'
     }}>
+      {/* 좌측: 기사 본문 */}
       <div style={{
         flex: 1,
         overflowY: 'auto',
@@ -39,7 +49,14 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
         minWidth: 0 }}>
         <div style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'left' }}>{news.title}</h2>
-          <ReactMarkdown>{news.content}</ReactMarkdown>
+          <div style={{fontSize: '1.15rem', whiteSpace: 'pre-line', textAlign: 'left', marginTop: 24}}>
+            <ReactMarkdown components={skipFirstImage()}>{news.content}</ReactMarkdown>
+          </div>
+        </div>
+      </div>
+      {/* 우측: 댓글/투표 */}
+      <div style={{ flex: 1, overflowY: 'auto', background: '#f3f4f6', minWidth: 0 }}>
+        <div style={{ padding: '2rem' }}>
           <CommentSection
             agreeCount={like}
             disagreeCount={dislike}
@@ -57,7 +74,6 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               }
               const newsId = news.id || news.news_id;
               if (!newsId) return;
-              setLoading(true);
               try {
                 // 찬성 상태에 따라 분기
                 if (vote === 'agree') {
@@ -91,7 +107,6 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               } catch (e) {
                 alert('좋아요 처리 중 오류가 발생했습니다.');
               }
-              setLoading(false);
             }}
             onVoteDisagree={async () => {
               if (!user) {
@@ -101,7 +116,6 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               }
               const newsId = news.id || news.news_id;
               if (!newsId) return;
-              setLoading(true);
               try {
                 // 반대 상태에 따라 분기
                 if (vote === 'disagree') {
@@ -135,7 +149,6 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               } catch (e) {
                 alert('싫어요 처리 중 오류가 발생했습니다.');
               }
-              setLoading(false);
             }}
             setPage={setPage}
           />

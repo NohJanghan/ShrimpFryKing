@@ -16,24 +16,6 @@ function findCommentById(comments, id) {
   return null;
 }
 
-function deleteCommentById(comments, id) {
-  return comments.filter(comment => {
-    if (comment.id === id) return false;
-    comment.replies = deleteCommentById(comment.replies, id);
-    return true;
-  });
-}
-
-function sortComments(comments, sortBy) {
-  const sorted = [...comments];
-  if (sortBy === 'latest') {
-    sorted.sort((a, b) => b.id - a.id);
-  } else if (sortBy === 'popular') {
-    sorted.sort((a, b) => b.likes - a.likes);
-  }
-  return sorted;
-}
-
 export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, agreeSummaryList: propAgreeSummaryList, disagreeSummaryList: propDisagreeSummaryList, user, newsId, onVoteAgree, onVoteDisagree, setPage, vote, setVote }) {
   const [agreeCount, setAgreeCount] = useState(propAgreeCount ?? 0);
   const [disagreeCount, setDisagreeCount] = useState(propDisagreeCount ?? 0);
