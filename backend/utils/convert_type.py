@@ -1,4 +1,4 @@
-from db.entity import NewsItem
+from db.entity import NewsItem, CommentItem
 from routers.dto import news_dto
 
 def news_to_detail(news_item: NewsItem) -> news_dto.NewsItemDetail:
@@ -15,11 +15,23 @@ def news_to_detail(news_item: NewsItem) -> news_dto.NewsItemDetail:
         like=news_item.like,
         dislike=news_item.dislike,
         opinion=news_item.opinion,
-        comment=news_dto.CommentItem.model_validate(news_item.comment),
+        comment=list(map(comm_to_detail, news_item.comment, [i for i in range(len(news_item.comment))])),
         Isliked=news_item.Isliked,
         Isdisliked=news_item.Isdisliked
     )
 
+def comm_to_detail(comm_item: CommentItem, i:int) -> news_dto.CommentItem:
+    return news_dto.CommentItem(
+        news_id = comm_item.news_id,
+        comment_index = i,
+        content = comm_item.content,
+        author_id = comm_item.author_id,
+        parent_id = comm_item.parent_id,
+        posneg = comm_item.posneg,
+        like = comm_item.like,
+        additional_comment = comm_item.additional_comment,
+        Isliked = comm_item.Isliked\
+    )
 
 
 def news_to_brief(news_item: NewsItem) -> news_dto.NewsItemBrief:
