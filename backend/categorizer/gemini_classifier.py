@@ -1,16 +1,18 @@
+import json
 import google.generativeai as genai
 import os
 
 api_key = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=api_key)
+common_categories = json.load(open("../common.json", "r", encoding="utf-8"))["category"]
 
 async def classify_article(text):
     model = genai.GenerativeModel("gemini-1.5-flash")
     prompt = f"""
     You are a news classifier. Given the article below, classify it into one of the following categories:
 
-    [Politics, Economy, Society, International, Sports, Entertainment, Science]
+    {common_categories}
 
     Article:
     {text}
