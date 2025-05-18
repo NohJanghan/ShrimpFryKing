@@ -48,25 +48,17 @@ ShrimpFryKing/
 │   └── ...                  # 기타 프론트엔드 관련 파일
 ├── present...yKing.pdf      # 프로젝트 발표 자료 (PDF)
 ├── common.json              # 공통 설정 또는 데이터 파일
-├── package.json             # 프론트엔드 의존성 및 실행 스크립트
-└── package-lock.json        # 프론트엔드 의존성 고정 파일
+└── package-lock.json
 ```
 
 ## 🛠 사용 기술
 
 ### Backend (Auto use with uv)
-- Python 3.10
+- Python
 - fastapi
-- uvicorn
-- datetime
-- (numpy)
-- (pandas)
 - beautifulsoup4
 - google-generativeai
-- python-dotenv
-- requests
-- html2text
-  
+
 ### Frontend
 - HTML5
 - CSS3
