@@ -17,7 +17,7 @@ class CommentItem(BaseModel):
     # parent_id가 None이 아니면 []
 
 class PostCommentRequest(BaseModel):
-    author_id: str
+    parent_id : int | None = None
     content: str
 
 class CommentSummary(BaseModel):

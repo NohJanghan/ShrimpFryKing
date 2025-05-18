@@ -8,7 +8,7 @@ from routers.middlewares import auth_middleware
 router = APIRouter(prefix="/comment", tags=["comment"])
 
 @router.post('/', response_model=bool)
-async def post_comment_handler(news_id: int, content: str, request: Request, response: Response):
+async def post_comment_handler(news_id: int, content: comment_dto.PostCommentRequest, request: Request, response: Response):
     user_id = auth_middleware(request, response)
     if not user_id:
         raise HTTPException(status_code=401, detail="Unauthorized")
