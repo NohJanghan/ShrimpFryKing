@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import logo from './logo_with_name.png';
+import logo from './logo_final.png';
 import thumbUpImg from './Good_hand.png';
 import thumbDownImg from './Bad_hand.png';
 import WritePage from './WritePage';
