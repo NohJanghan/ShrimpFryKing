@@ -8,9 +8,26 @@ async def get_comment_summary(news_id: int, user_id: str) -> str:
     news_item = db.get_news_by_id(news_id, user_id)
     text = news_item.comment
 
-    text = await summarize_comment(text)
+    positive_comments = []
+    negative_comments = []
+    for comment in text:
+        if comment.posneg == 1:
+            positive_comments.append(comment)
+        elif comment.posneg == -1:
+            negative_comments.append(comment)
+        else:
+            print(f"[ERROR] Invalid comment sentiment: {comment}")
+            continue
 
-    return text
+    positive_summary_task = summarize_comment(positive_comments)
+    negative_summary_task = summarize_comment(negative_comments)
+    await positive_summary_task
+    await negative_summary_task
+
+    return {
+        "summarized_positive_comment": positive_summary_task,
+        "summarized_negative_comment": negative_summary_task
+    }
 
   except Exception as e:
         print(f"[ERROR] Failed to get news by ID: {e}")
