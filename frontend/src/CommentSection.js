@@ -1,19 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import thumbUpImg from './Good_hand.png';
 import thumbDownImg from './Bad_hand.png';
 import './CommentSection.css'; // 아래 CSS 참고
 
-function generateId() {
-  return Date.now() + Math.floor(Math.random() * 1000);
-}
-
 function findCommentById(comments, id) {
   for (const comment of comments) {
     if (comment.id === id) return comment;
-    const found = findCommentById(comment.replies, id);
-    if (found) return found;
+    if (comment.replies && comment.replies.length > 0) {
+      const found = findCommentById(comment.replies, id);
+      if (found) return found;
+    }
   }
   return null;
+}
+
+// 댓글 데이터 매핑 함수: 백엔드에서 받아온 raw에 createdAt(혹은 id)로 시간 매핑, type(0/1)도 구분
+function mapComment(raw, idx) {
+  return {
+    id: raw.id || raw.comment_index || idx,
+    username: raw.username || raw.author || raw.author_id || '익명',
+    text: raw.text || raw.content || raw.comment || '',
+    type: raw.type ?? (raw.parent_id ? 1 : 0),
+    sentiment: raw.sentiment || (raw.posneg === 1 ? 'agree' : raw.posneg === -1 ? 'disagree' : 'neutral'),
+    likes: raw.likes ?? raw.like ?? 0,
+    replies: Array.isArray(raw.replies) ? raw.replies.map(mapComment) : [],
+    comment_index: raw.comment_index ?? idx,
+    Isliked: raw.Isliked ?? false,
+    parent_id: raw.parent_id ?? null,
+    additional_comment: raw.additional_comment ?? [],
+  };
 }
 
 export default function CommentSection({ agreeCount: propAgreeCount, disagreeCount: propDisagreeCount, agreeSummaryList: propAgreeSummaryList, disagreeSummaryList: propDisagreeSummaryList, user, newsId, onVoteAgree, onVoteDisagree, setPage, vote, setVote }) {
@@ -53,48 +68,109 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
     '아직 요약 내용이 없습니다'
   ];
 
-  const handleSend = () => {
+  // 댓글/대댓글 목록은 항상 fetchComments로 백엔드에서 받아옴
+  const fetchComments = useCallback(async () => {
+    if (!newsId) return;
+    try {
+      const res = await fetch(`/news/${newsId}`, { credentials: 'include' });
+      if (!res.ok) return;
+      const detail = await res.json();
+      if (Array.isArray(detail.comment)) {
+        const flat = detail.comment.map(mapComment);
+        const nested = nestComments(flat);
+        setComments(nested);
+      } else {
+        setComments([]);
+      }
+    } catch (e) {
+      console.error("댓글을 불러오는 중 오류 발생:", e);
+    }
+  }, [newsId]);
+
+  useEffect(() => { 
+    fetchComments(); 
+  }, [fetchComments]);
+
+  // 댓글/대댓글 등록 시 createdAt(Date.now())을 쿼리로 전달, 등록 후 fetchComments로 목록 갱신
+  const handleSend = async () => {
     const text = input.trim();
     if (!text) return;
-    const newComment = {
-      id: generateId(),
-      text,
-      likes: 0,
-      replies: [],
-      sentiment: Math.random() > 0.5 ? 'agree' : 'disagree'
-    };
-    if (replyingTo) {
-      setComments(prev => {
-        const copy = JSON.parse(JSON.stringify(prev));
-        const parent = findCommentById(copy, replyingTo);
-        parent.replies.push(newComment);
-        return copy;
-      });
-    } else {
-      setComments(prev => [...prev, newComment]);
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      setPage && setPage('login');
+      return;
     }
-    setReplyingTo(null);
-    setInput('');
+    if (!newsId) return;
+    // 쿼리스트링으로만 데이터 전달
+    let url = `/comment?news_id=${newsId}&username=${encodeURIComponent(user)}&content=${encodeURIComponent(text)}`;
+    if (replyingTo) {
+      url += `&parent_id=${replyingTo}`;
+    }
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const result = await res.json();
+      setInput('');
+      setReplyingTo(null);
+      if ((result && result.parent_index !== undefined && result.child_index !== undefined) || (result && result.comment_index !== undefined)) {
+        fetchComments();
+      } else {
+        fetchComments();
+      }
+    } catch (e) {
+      alert('댓글 저장 중 오류가 발생했습니다.');
+    }
   };
 
-  const handleLike = (comment) => {
-    setComments(prev => {
-      const copy = JSON.parse(JSON.stringify(prev));
-      const target = findCommentById(copy, comment.id);
-      if (liked.has(comment.id)) {
-        target.likes--;
+  const handleLike = async (comment) => {
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      setPage && setPage('login');
+      return;
+    }
+    try {
+      // 백엔드에 추천 요청
+      if (comment.Isliked) {
+        await fetch(`/comment/like?news_id=${newsId}&comment_i=${comment.comment_index}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
       } else {
-        target.likes++;
+        await fetch(`/comment/like?news_id=${newsId}&comment_i=${comment.comment_index}`, {
+          method: 'POST',
+          credentials: 'include'
+        });
       }
-      return copy;
-    });
-    setLiked(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(comment.id)) newSet.delete(comment.id);
-      else newSet.add(comment.id);
-      return newSet;
-    });
+      // 프론트 상태에서 likes/Isliked만 불변성 있게 갱신, replies는 항상 보존
+      setComments(prev => updateLike(prev, comment.id));
+      // 전체 댓글 다시 불러오기
+      setTimeout(() => fetchComments(), 500);
+    } catch (e) {
+      alert('공감 처리 중 오류가 발생했습니다.');
+    }
   };
+
+  // 좋아요 업데이트 함수 개선
+  function updateLike(commentsArray, targetId) {
+    return commentsArray.map(c => {
+      if (c.id === targetId) {
+        return {
+          ...c,
+          likes: c.Isliked ? c.likes - 1 : c.likes + 1,
+          Isliked: !c.Isliked,
+          replies: c.replies ? [...c.replies] : [],
+        };
+      } else if (c.replies && c.replies.length > 0) {
+        return { 
+          ...c, 
+          replies: updateLike(c.replies, targetId) 
+        };
+      }
+      return c;
+    });
+  }
 
   // 댓글 수정 저장
   const handleEditSave = (comment) => {
@@ -122,9 +198,10 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
     } else {
       action = 1;
     }
-    // fetch 제거, onVoteAgree만 호출
+    // onVoteAgree 호출
     await onVoteAgree && onVoteAgree(action);
   };
+  
   const handleVoteDisagree = async () => {
     if (!user) {
       alert('로그인이 필요합니다.');
@@ -138,113 +215,156 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
     } else {
       action = 1;
     }
-    // fetch 제거, onVoteDisagree만 호출
+    // onVoteDisagree 호출
     await onVoteDisagree && onVoteDisagree(action);
   };
 
-  const renderComments = (comments, isReply = false) => {
-    let sorted;
-    if (sortBy === 'latest') {
-      if (isReply) {
-        // 대댓글은 오래된 순(오름차순)
-        sorted = [...comments].sort((a, b) => a.id - b.id);
-      } else {
-        // 댓글은 최신순(내림차순)
-        sorted = [...comments].sort((a, b) => b.id - a.id);
-      }
-    } else if (sortBy === 'popular') {
-      sorted = [...comments].sort((a, b) => b.likes - a.likes);
-    } else {
-      sorted = [...comments];
+  // nestComments: parent_id로 계층 구조 변환 (개선)
+  function nestComments(flatComments) {
+    const map = {};
+    const roots = [];
+    // 먼저 모든 댓글을 맵에 저장
+    for (const comment of flatComments) {
+      map[comment.comment_index] = { ...comment, replies: [] };
     }
-    return sorted.map(comment => (
-      <div
-        className="comment-item"
-        key={comment.id}
-        style={{
-          border: '1.5px solid #e0e4ea',
-          borderRadius: '10px',
-          margin: isReply ? '10px 0 10px 32px' : '16px 0',
-          padding: '14px 16px',
-          background: isReply ? '#f8fafc' : '#fff',
-          boxShadow: isReply ? 'none' : '0 2px 8px rgba(0,0,0,0.04)',
-          display: 'flex',
-          alignItems: 'flex-start',
-          position: 'relative'
-        }}
-      >
-        {/* 대댓글이면 ↳ 표시 */}
-        {isReply && (
-          <span style={{ position: 'absolute', left: '-18px', top: 18, color: '#888', fontSize: '1.2rem', fontWeight: 700 }}>↳</span>
-        )}
-        <div style={{ flex: 1 }}>
-          <div className="comment-meta">
-            <div
-              className="avatar"
-              style={{
-                backgroundColor: comment.sentiment === 'agree' ? '#007bff' : '#dc3545'
-              }}
-            />
-            <span
-              className="username"
-              style={{
-                color: comment.sentiment === 'agree' ? '#007bff' : '#dc3545'
-              }}
-            >
-              익명
-            </span>
-          </div>
-          <div className="comment-content">
-            {editingId === comment.id ? (
-              <>
-                <input
-                  value={editValue}
-                  onChange={e => setEditValue(e.target.value)}
-                  style={{ width: '80%', padding: '4px', fontSize: '1rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                />
-                <button style={{ marginLeft: 8 }} onClick={() => handleEditSave(comment)}>저장</button>
-                <button style={{ marginLeft: 4 }} onClick={() => { setEditingId(null); setEditValue(''); }}>취소</button>
-              </>
-            ) : (
-              comment.text
-            )}
-          </div>
-          <div className="timestamp">{new Date(comment.id).toLocaleString()}</div>
-          <div className="comment-actions">
-            {/* 대댓글 버튼: 토글 방식, 선택 시 강조 */}
-            {!isReply && (
-              <button
-                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+    // 그 다음 계층 구조 생성
+    for (const comment of flatComments) {
+      if (comment.parent_id != null && map[comment.parent_id]) {
+        // 부모 댓글이 있으면 그 부모의 replies에 추가
+        map[comment.parent_id].replies.push(map[comment.comment_index]);
+      } else {
+        // 부모 댓글이 없으면 루트에 추가
+        roots.push(map[comment.comment_index]);
+      }
+    }
+    return roots;
+  }
+
+  // 대댓글 추가 처리 함수 - 백엔드 호환
+  function processAdditionalComments(comment) {
+    // additional_comment가 비어있지 않은 경우에만 처리
+    if (!comment.additional_comment || comment.additional_comment.length === 0) {
+      return comment;
+    }
+
+    // additional_comment를 replies로 변환
+    const additionalReplies = comment.additional_comment.map((item, idx) => ({
+      id: `${comment.id}_reply_${idx}`,
+      username: item[0],
+      text: item[1],
+      type: 1,
+      createdAt: comment.createdAt ? comment.createdAt + (idx + 1) * 1000 : Date.now() + (idx + 1) * 1000,
+      sentiment: comment.sentiment,
+      likes: 0,
+      replies: [],
+      comment_index: `${comment.comment_index}_${idx}`,
+      Isliked: false,
+      parent_id: comment.comment_index
+    }));
+
+    // 기존 replies와 additional_comment에서 변환한 replies 합치기
+    return {
+      ...comment,
+      replies: [...(comment.replies || []), ...additionalReplies]
+    };
+  }
+
+  // renderComments: createdAt이 항상 고정된 값으로, 댓글/대댓글 아래에 표기
+  const renderComments = (comments, isReply = false) => {
+    const safeComments = Array.isArray(comments) ? comments : [];
+    // 최신순: 인덱스가 큰 댓글이 위로 오도록 정렬
+    let sorted = [...safeComments].sort((a, b) => (b.comment_index ?? 0) - (a.comment_index ?? 0));
+    if (sortBy === 'popular') {
+      sorted = [...safeComments].sort((a, b) => b.likes - a.likes);
+    }
+    return sorted.map((comment, idx) => {
+      const processedComment = processAdditionalComments(comment);
+      return (
+        <div
+          className="comment-item"
+          key={comment.id ?? comment.comment_index ?? idx}
+          style={{
+            border: '1.5px solid #e0e4ea',
+            borderRadius: '10px',
+            margin: isReply ? '10px 0 10px 32px' : '16px 0',
+            padding: '14px 16px',
+            background: isReply ? '#f8fafc' : '#fff',
+            boxShadow: isReply ? 'none' : '0 2px 8px rgba(0,0,0,0.04)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            position: 'relative'
+          }}
+        >
+          {isReply && (
+            <span style={{ position: 'absolute', left: '-18px', top: 18, color: '#888', fontSize: '1.2rem', fontWeight: 700 }}>↳</span>
+          )}
+          <div style={{ flex: 1 }}>
+            <div className="comment-meta">
+              <div
+                className="avatar"
                 style={{
-                  color: replyingTo === comment.id ? '#007bff' : undefined,
-                  fontWeight: replyingTo === comment.id ? 700 : undefined,
-                  background: replyingTo === comment.id ? '#e6f0ff' : undefined,
-                  borderRadius: '6px',
-                  transition: 'all 0.15s',
-                  marginRight: 4
+                  backgroundColor: comment.sentiment === 'agree' ? '#007bff' : '#dc3545'
+                }}
+              />
+              <span
+                className="username"
+                style={{
+                  color: comment.sentiment === 'agree' ? '#007bff' : '#dc3545'
                 }}
               >
-                💬
-              </button>
-            )}
-            {/* 대댓글이 아닐 때만 추천(Like) 버튼 표시 */}
-            {!isReply && (
+                {comment.username || '익명'}
+              </span>
+            </div>
+            <div className="comment-content">
+              {editingId === comment.id ? (
+                <>
+                  <input
+                    value={editValue}
+                    onChange={e => setEditValue(e.target.value)}
+                    style={{ width: '80%', padding: '4px', fontSize: '1rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                  />
+                  <button style={{ marginLeft: 8 }} onClick={() => handleEditSave(comment)}>저장</button>
+                  <button style={{ marginLeft: 4 }} onClick={() => { setEditingId(null); setEditValue(''); }}>취소</button>
+                </>
+              ) : (
+                comment.text
+              )}
+            </div>
+            {/* 시간 표시는 제거 */}
+            <div className="comment-actions">
+              {!isReply && (
+                <button
+                  onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                  style={{
+                    color: replyingTo === comment.id ? '#007bff' : undefined,
+                    fontWeight: replyingTo === comment.id ? 700 : undefined,
+                    background: replyingTo === comment.id ? '#e6f0ff' : undefined,
+                    borderRadius: '6px',
+                    transition: 'all 0.15s',
+                    marginRight: 4
+                  }}
+                >
+                  💬
+                </button>
+              )}
               <button
-                style={{ color: liked.has(comment.id) ? 'blue' : undefined }}
+                style={{ color: comment.Isliked ? 'blue' : undefined }}
                 onClick={() => handleLike(comment)}
               >
                 👍 {comment.likes}
               </button>
+              {comment.username === user && (
+                <button onClick={() => { setEditingId(comment.id); setEditValue(comment.text); }}>수정</button>
+              )}
+            </div>
+            {/* 대댓글 렌더링: 항상 부모 댓글 아래에, 들여쓰기(↳)로 계층적으로 */}
+            {processedComment.replies && processedComment.replies.length > 0 && (
+              <div className="reply-box">{renderComments(processedComment.replies, true)}</div>
             )}
-            {/* 댓글/대댓글 모두 수정 버튼 */}
-            <button onClick={() => { setEditingId(comment.id); setEditValue(comment.text); }}>수정</button>
           </div>
-          {comment.replies.length > 0 && (
-            <div className="reply-box">{renderComments(comment.replies, true)}</div>
-          )}
         </div>
-      </div>
-    ));
+      )
+    });
   };
 
   return (
@@ -343,6 +463,9 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
         }}
       />
       <button onClick={handleSend}>등록</button>
+      {replyingTo && (
+        <button style={{ marginLeft: 4 }} onClick={() => { setReplyingTo(null); setInput(''); }}>대댓글 취소</button>
+      )}
     </div>
   </div>
 );
