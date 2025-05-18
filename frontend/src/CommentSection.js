@@ -98,13 +98,25 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
         const res = await fetch(`/comment/summary?news_id=${newsId}`, { credentials: 'include' });
         if (!res.ok) return;
         const data = await res.json();
-        // 예시: data = { agreeSummaryList: [...], disagreeSummaryList: [...] }
-        setAgreeSummaryList(Array.isArray(data.agreeSummaryList) && data.agreeSummaryList.length > 0
-          ? data.agreeSummaryList.slice(0, 3)
-          : ['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
-        setDisagreeSummaryList(Array.isArray(data.disagreeSummaryList) && data.disagreeSummaryList.length > 0
-          ? data.disagreeSummaryList.slice(0, 3)
-          : ['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
+        // 문자열을 배열로 변환
+        let agreeArr = [];
+        let disagreeArr = [];
+        if (data.summarized_positive_comment && data.summarized_positive_comment !== '댓글이 충분하지 않습니다.') {
+          agreeArr = data.summarized_positive_comment.split('\n').filter(Boolean);
+        }
+        if (data.summarized_negative_comment && data.summarized_negative_comment !== '댓글이 충분하지 않습니다.') {
+          disagreeArr = data.summarized_negative_comment.split('\n').filter(Boolean);
+        }
+        setAgreeSummaryList(
+          agreeArr.length > 0
+            ? [...agreeArr, ...Array(3 - agreeArr.length).fill('아직 요약 내용이 없습니다')].slice(0, 3)
+            : ['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']
+        );
+        setDisagreeSummaryList(
+          disagreeArr.length > 0
+            ? [...disagreeArr, ...Array(3 - disagreeArr.length).fill('아직 요약 내용이 없습니다')].slice(0, 3)
+            : ['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']
+        );
       } catch (e) {
         setAgreeSummaryList(['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
         setDisagreeSummaryList(['아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다', '아직 요약 내용이 없습니다']);
@@ -123,24 +135,23 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
       return;
     }
     if (!newsId) return;
-    // 쿼리스트링으로만 데이터 전달
-    let url = `/comment?news_id=${newsId}&username=${encodeURIComponent(user)}&content=${encodeURIComponent(text)}`;
-    if (replyingTo) {
-      url += `&parent_id=${replyingTo}`;
-    }
+    let url = `/comment?news_id=${Number(newsId)}`;
+    const body = JSON.stringify({
+      username: user,
+      content: text,
+      parent_id: replyingTo !== null && replyingTo !== undefined ? Number(replyingTo) : null
+    });
     try {
       const res = await fetch(url, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body
       });
       const result = await res.json();
       setInput('');
       setReplyingTo(null);
-      if ((result && result.parent_index !== undefined && result.child_index !== undefined) || (result && result.comment_index !== undefined)) {
-        fetchComments();
-      } else {
-        fetchComments();
-      }
+      fetchComments();
     } catch (e) {
       alert('댓글 저장 중 오류가 발생했습니다.');
     }
@@ -410,7 +421,10 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
         <div className="summary agree-summary">
           <div className="summary-title">찬성 요약</div>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {agreeSummaryList.map((item, idx) => (
+            {(agreeSummaryList.some(item => item && item !== '아직 요약 내용이 없습니다')
+              ? agreeSummaryList
+              : Array(3).fill('아직 요약 내용이 없습니다')
+            ).map((item, idx) => (
               <li key={idx} style={{ color: '#007bff', fontSize: '0.98rem', marginBottom: 2 }}>{item}</li>
             ))}
           </ul>
@@ -418,64 +432,67 @@ export default function CommentSection({ agreeCount: propAgreeCount, disagreeCou
         <div className="summary disagree-summary">
           <div className="summary-title">반대 요약</div>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {disagreeSummaryList.map((item, idx) => (
+            {(disagreeSummaryList.some(item => item && item !== '아직 요약 내용이 없습니다')
+              ? disagreeSummaryList
+              : Array(3).fill('아직 요약 내용이 없습니다')
+            ).map((item, idx) => (
               <li key={idx} style={{ color: '#dc3545', fontSize: '0.98rem', marginBottom: 2 }}>{item}</li>
             ))}
           </ul>
         </div>
-    </div>
-    {/* 댓글 제목 + 정렬 버튼 */}
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '1.5rem 0 0.5rem 0' }}>
-      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>댓글</h3>
-      <div style={{ display: 'flex' }}>
-        <button
-          onClick={() => setSortBy('latest')}
-          style={{
-            background: sortBy === 'latest' ? '#007bff' : '#f3f4f6',
-            color: sortBy === 'latest' ? '#fff' : '#222',
-            border: 'none',
-            borderRadius: '6px 0 0 6px',
-            padding: '6px 16px',
-            fontWeight: 600,
-            cursor: 'pointer'
+      </div>
+      {/* 댓글 제목 + 정렬 버튼 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '1.5rem 0 0.5rem 0' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>댓글</h3>
+        <div style={{ display: 'flex' }}>
+          <button
+            onClick={() => setSortBy('latest')}
+            style={{
+              background: sortBy === 'latest' ? '#007bff' : '#f3f4f6',
+              color: sortBy === 'latest' ? '#fff' : '#222',
+              border: 'none',
+              borderRadius: '6px 0 0 6px',
+              padding: '6px 16px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            최신순
+          </button>
+          <button
+            onClick={() => setSortBy('popular')}
+            style={{
+              background: sortBy === 'popular' ? '#007bff' : '#f3f4f6',
+              color: sortBy === 'popular' ? '#fff' : '#222',
+              border: 'none',
+              borderRadius: '0 6px 6px 0',
+              padding: '6px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginLeft: '-1px'
+            }}
+          >
+            인기순
+          </button>
+        </div>
+      </div>
+      {/* 댓글 시스템 */}
+      <div>{renderComments(comments)}</div>
+      <div className="footer">
+        <input
+          id="new-comment"
+          placeholder={replyingTo ? '↳대댓글을 입력하세요...' : '댓글을 입력하세요...'}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSend();
           }}
-        >
-          최신순
-        </button>
-        <button
-          onClick={() => setSortBy('popular')}
-          style={{
-            background: sortBy === 'popular' ? '#007bff' : '#f3f4f6',
-            color: sortBy === 'popular' ? '#fff' : '#222',
-            border: 'none',
-            borderRadius: '0 6px 6px 0',
-            padding: '6px 16px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            marginLeft: '-1px'
-          }}
-        >
-          인기순
-        </button>
+        />
+        <button onClick={handleSend}>등록</button>
+        {replyingTo && (
+          <button style={{ marginLeft: 4 }} onClick={() => { setReplyingTo(null); setInput(''); }}>대댓글 취소</button>
+        )}
       </div>
     </div>
-    {/* 댓글 시스템 */}
-    <div>{renderComments(comments)}</div>
-    <div className="footer">
-      <input
-        id="new-comment"
-        placeholder={replyingTo ? '↳대댓글을 입력하세요...' : '댓글을 입력하세요...'}
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') handleSend();
-        }}
-      />
-      <button onClick={handleSend}>등록</button>
-      {replyingTo && (
-        <button style={{ marginLeft: 4 }} onClick={() => { setReplyingTo(null); setInput(''); }}>대댓글 취소</button>
-      )}
-    </div>
-  </div>
-);
+  );
 }
