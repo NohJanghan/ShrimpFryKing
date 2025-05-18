@@ -1,0 +1,84 @@
+# ShrimpFryKing Frontend 프로젝트 개요
+
+이 프로젝트는 ShrimpFryKing 서비스의 프론트엔드 부분입니다. React를 기반으로 구축되었으며, 사용자 인터페이스와 사용자 경험을 담당합니다.
+
+## 프로젝트 구조
+
+```
+frontend/
+├── .gitignore
+├── README.md
+├── node_modules/
+├── package-lock.json
+├── package.json
+├── public/               # 정적 파일 (index.html, favicon 등)
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo_agora.png
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   ├── newlogo_agora.png
+│   └── robots.txt
+└── src/                  # 소스 코드
+    ├── App.css
+    ├── App.js            # 메인 애플리케이션 컴포넌트
+    ├── App.test.js
+    ├── Bad_hand.png
+    ├── CommentSection.css
+    ├── CommentSection.js # 댓글 기능 컴포넌트
+    ├── Good_hand.png
+    ├── LoginPage.js      # 로그인 페이지
+    ├── NewsDetailPage.js # 뉴스 상세 페이지
+    ├── RegisterPage.js   # 회원가입 페이지
+    ├── WritePage.js      # 글 작성 페이지
+    ├── apis/             # API 호출 관련 함수
+    │   └── getNewsList.js
+    ├── components/       # 재사용 가능한 UI 컴포넌트
+    │   ├── Header.js
+    │   ├── NewsCard.js
+    │   └── Pagination.js
+    │   └── ThemeCard.js
+    ├── constants.js      # 상수 정의
+    ├── hooks/            # 커스텀 React Hooks
+    │   ├── useArticles.js
+    │   └── useClickOutside.js
+    ├── index.css
+    ├── index.js          # 애플리케이션 진입점
+    ├── logo_agora.png
+    ├── logo_with_name.png
+    ├── newlogo_agora.png
+    ├── pages/            # 페이지 단위 컴포넌트
+    │   ├── LatestPage.js
+    │   └── MainPage.js
+    ├── reportWebVitals.js
+    ├── services/         # 서비스 로직 (API 호출 등)
+    ├── setupTests.js
+    └── utils/            # 유틸리티 함수
+```
+
+## 현재 기능
+
+*   **사용자 인증:**
+    *   회원가입 (`RegisterPage.js`)
+    *   로그인 (`LoginPage.js`)
+*   **뉴스:**
+    *   뉴스 목록 조회 (메인 페이지 `MainPage.js`, 최신 뉴스 페이지 `LatestPage.js`, `apis/getNewsList.js`, `components/NewsCard.js`)
+    *   뉴스 상세 정보 조회 (`NewsDetailPage.js`)
+    *   뉴스 추천/비추천 기능 (좋아요/싫어요 아이콘 `Good_hand.png`, `Bad_hand.png`으로 추정)
+*   **댓글:**
+    *   뉴스에 대한 댓글 보기 및 작성 (`CommentSection.js`, `CommentSection.css`)
+*   **글 작성:**
+    *   새로운 글 작성 기능 (`WritePage.js`)
+*   **UI 컴포넌트:**
+    *   헤더 (`components/Header.js`)
+    *   페이지네이션 (`components/Pagination.js`)
+    *   테마 카드 (`components/ThemeCard.js`) - 구체적인 용도는 컨텍스트 필요
+
+## 이해에 도움이 되는 컨텍스트
+
+*   이 프론트엔드 애플리케이션은 백엔드 API와 통신하여 데이터를 주고받습니다. (`apis/` 및 `services/` 디렉토리)
+*   `constants.js` 파일에는 API 엔드포인트 URL이나 기타 설정 값들이 정의되어 있을 가능성이 높습니다.
+*   `hooks/` 디렉토리의 커스텀 훅들은 상태 관리나 반복적인 로직을 추상화하여 코드 재사용성을 높입니다. 예를 들어 `useArticles.js`는 뉴스 기사 관련 데이터를 가져오거나 관리하는 역할을 할 수 있습니다.
+*   `public/` 디렉토리에는 애플리케이션의 아이콘, 로고 및 기본 HTML 파일이 포함되어 있습니다.
+*   전반적으로 React의 컴포넌트 기반 아키텍처를 따르고 있으며, 각 기능별로 페이지 및 컴포넌트가 분리되어 있습니다.
