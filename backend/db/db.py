@@ -29,6 +29,11 @@ def timesubdate(time:int, subdate:int) -> int:
     return int(date.strftime("%Y%m%d%H%M%S"))
 
 def checkliked(newsdict:dict, user_id:str) -> dict:
+    if user_id == "":
+        # guest
+        newsdict["Isliked"] = False
+        newsdict["Isdisliked"] = False
+        return newsdict
     if newsdict == {}:
         return {}
     # check if user liked or disliked the news
@@ -300,6 +305,9 @@ class NewsDB(DB):
         # True : insert success
         # False : insert failed
         try:
+            if author_id == "":
+                # guest
+                return False
             if self.title_news(title, author_id) != {}:
                 print("title already exists")
                 return False
@@ -326,6 +334,9 @@ class NewsDB(DB):
         # comment : list of comment
         # comment = CommentItem()
         try:
+            if user_id == "":
+                # guest
+                return False
             if self.get_news(news_id, user_id) == {}:
                 print("news not found")
                 return False
