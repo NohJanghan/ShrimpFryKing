@@ -6,9 +6,8 @@ import React, { useState } from 'react';
 
 function WritePage({ user, setPage, fetchArticles }) {
   const [site, setSite] = useState('');
-  const [topic, setTopic] = useState('');
   const [warning, setWarning] = useState('');
-  const isValid = site.trim() !== '' && topic !== '';
+  const isValid = site.trim() !== '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,40 +102,6 @@ function WritePage({ user, setPage, fetchArticles }) {
               value={site}
               onChange={e => setSite(e.target.value)}
             />
-          </div>
-          {/* 주제 선택 */}
-          <div className="mb-10">
-            <div 
-                style={{ 
-                    fontSize: '1.5rem', 
-                    fontWeight: 600, 
-                    color: '#374151', 
-                    marginBottom: '1rem', 
-                    textAlign: 'left' 
-                    }}
-                    >
-                        주제 선택
-                    </div>
-            <select
-              style={{
-                width: '93%',
-                padding: '0.75rem 0.75rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #d1d5db',
-                fontSize: '1.2rem',
-                color: '#374151',
-                outline: 'none',
-                marginBottom: '2rem',
-              }}         
-              value={topic}
-              onChange={e => setTopic(e.target.value)}
-            >
-              <option value="" disabled>주제를 선택해주세요</option>
-              <option value="정치">정치</option>
-              <option value="경제">경제</option>
-              <option value="과학">과학</option>
-              <option value="기타">기타</option>
-            </select>
           </div>
           {/* 등록 버튼 */}
           <button

@@ -6,6 +6,7 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
   const [dislike, setDislike] = React.useState(news.dislike ?? 0);
   const [loading, setLoading] = React.useState(false);
   const [imgError, setImgError] = React.useState(false);
+  const [vote, setVote] = React.useState(null);
 
   React.useEffect(() => {
     setLike(news.like ?? 0);
@@ -58,7 +59,9 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
             disagreeSummaryList={disagreeSummaryList}
             user={user}
             newsId={news.id || news.news_id}
-            onVoteAgree={async (action = 1) => {
+            vote={vote}
+            setVote={setVote}
+            onVoteAgree={async () => {
               if (!user) {
                 alert('로그인이 필요합니다.');
                 setPage && setPage('login');
@@ -68,16 +71,33 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               if (!newsId) return;
               setLoading(true);
               try {
-                await fetch(`/news/${newsId}/like`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user_id: user.id, action }),
-                  credentials: 'include',
-                });
+                // 찬성 상태에 따라 분기
+                if (vote === 'agree') {
+                  // 찬성 취소
+                  await fetch(`/news/like/${newsId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                  });
+                } else {
+                  // 반대였다면 반대 취소 먼저
+                  if (vote === 'disagree') {
+                    await fetch(`/news/dislike/${newsId}`, {
+                      method: 'DELETE',
+                      credentials: 'include',
+                    });
+                  }
+                  // 찬성 추가
+                  await fetch(`/news/like/${newsId}`, {
+                    method: 'POST',
+                    credentials: 'include',
+                  });
+                }
+                // 최신값 반영
                 const res = await fetch(`/news/${newsId}`, { credentials: 'include' });
                 const detail = await res.json();
                 setLike(detail.like ?? detail.likes ?? like);
                 setDislike(detail.dislike ?? detail.dislikes ?? dislike);
+                setVote(detail.Isliked ? 'agree' : detail.Isdisliked ? 'disagree' : null);
                 if (detail && detail.title) setSelectedNews && setSelectedNews(detail);
                 fetchArticles && fetchArticles();
               } catch (e) {
@@ -85,7 +105,7 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               }
               setLoading(false);
             }}
-            onVoteDisagree={async (action = 1) => {
+            onVoteDisagree={async () => {
               if (!user) {
                 alert('로그인이 필요합니다.');
                 setPage && setPage('login');
@@ -95,16 +115,33 @@ function NewsDetailPage({ news, user, setSelectedNews, fetchArticles, setPage })
               if (!newsId) return;
               setLoading(true);
               try {
-                await fetch(`/news/${newsId}/dislike`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user_id: user.id, action }),
-                  credentials: 'include',
-                });
+                // 반대 상태에 따라 분기
+                if (vote === 'disagree') {
+                  // 반대 취소
+                  await fetch(`/news/dislike/${newsId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                  });
+                } else {
+                  // 찬성이었다면 찬성 취소 먼저
+                  if (vote === 'agree') {
+                    await fetch(`/news/like/${newsId}`, {
+                      method: 'DELETE',
+                      credentials: 'include',
+                    });
+                  }
+                  // 반대 추가
+                  await fetch(`/news/dislike/${newsId}`, {
+                    method: 'POST',
+                    credentials: 'include',
+                  });
+                }
+                // 최신값 반영
                 const res = await fetch(`/news/${newsId}`, { credentials: 'include' });
                 const detail = await res.json();
                 setLike(detail.like ?? detail.likes ?? like);
                 setDislike(detail.dislike ?? detail.dislikes ?? dislike);
+                setVote(detail.Isliked ? 'agree' : detail.Isdisliked ? 'disagree' : null);
                 if (detail && detail.title) setSelectedNews && setSelectedNews(detail);
                 fetchArticles && fetchArticles();
               } catch (e) {
